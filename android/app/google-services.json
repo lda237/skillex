@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "320421822385",
+    "project_id": "skillex-f4084",
+    "storage_bucket": "skillex-f4084.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:320421822385:android:7b9da9dd6842230986c790",
+        "android_client_info": {
+          "package_name": "cm.mediasystem.skillex"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "320421822385-j5d2h8giqes9m2cpnu73gohsj11jpm5r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cm.mediasystem.skillex",
+            "certificate_hash": "5dd4f8394518a459e1823ebcabe2da09f9e1bc20"
+          }
+        },
+        {
+          "client_id": "320421822385-rums8f0lmp368l0hr09i7e6mn5ldhore.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDv0vfP9K1ZComswh6fkIFqi9JqnPy2wic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "320421822385-rums8f0lmp368l0hr09i7e6mn5ldhore.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "320421822385-649kvdqqsp4agt28ft9cg7v336fij4qc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.skillex"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
