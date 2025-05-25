@@ -1,4 +1,4 @@
-package com.example.skillex
+package cm.mediasystem.skillex
 
 import io.flutter.embedding.android.FlutterActivity
 

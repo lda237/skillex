@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.skillex"
+    namespace = "cm.mediasystem.skillex"
     compileSdk = 35
     ndkVersion = "29.0.13113456"
 
