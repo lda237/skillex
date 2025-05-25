@@ -44,6 +44,9 @@ Skillex est une application mobile de formation en ligne qui permet aux utilisat
 - 🔄 Filtrage par catégorie et difficulté
 - 🔄 Suivi de progression par playlist
 
+### Interaction Sociale
+- ✅ Système de commentaires sur les vidéos (affichage, ajout, pagination)
+
 ## 🛠️ Fonctionnalités en Cours de Développement
 
 ### Contenu
@@ -51,13 +54,12 @@ Skillex est une application mobile de formation en ligne qui permet aux utilisat
 - 🔄 Système de playlists
 - 🔄 Recommandations personnalisées
 - 🔄 Contenu premium
-- 🔄 Système de notes et commentaires
+- 🔄 Système de notes
 
 ### Social
 
 - 🔄 Partage de vidéos
 - 🔄 Système de likes
-- 🔄 Commentaires sur les vidéos
 - 🔄 Suivi d'autres utilisateurs
 
 ### Progression
@@ -98,6 +100,13 @@ Skillex est une application mobile de formation en ligne qui permet aux utilisat
 - **Authentification**: Firebase Auth
 - **Stockage**: Firebase Storage
 - **API Vidéo**: YouTube Data API
+
+## ✅ Qualité et Fiabilité
+
+Pour assurer une application stable et de haute qualité :
+
+- **Tests Unitaires et Widgets**: Des tests unitaires sont en place pour la logique métier (ex: `VideoProvider`), et des tests de widgets pour les composants UI clés (ex: section commentaires). Ceci garantit que les fonctionnalités de base se comportent comme prévu et aide à prévenir les régressions.
+- **Rapports d'Erreurs**: Intégration de Firebase Crashlytics pour le suivi en temps réel des erreurs et des crashs, permettant une identification et une résolution rapides des problèmes en production.
 
 ## 📱 Configuration Requise
 
