@@ -497,10 +497,14 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context, value, child) {
         return Transform.scale(
           scale: value,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            margin: const EdgeInsets.only(right: 12),
+          child: Semantics(
+            label: 'Catégorie: $category',
+            button: true,
+            selected: isSelected,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
               gradient: isSelected ? LinearGradient(
@@ -560,10 +564,11 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ), // Closing Semantics
+      );
+    },
+  );
+}
 
   Widget _buildEnhancedBottomNav() {
     return Container(
@@ -652,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               child: const Icon(Icons.bookmark, size: 24),
             ),
-            label: 'Favoris',
+            label: 'Favoris (Bientôt)', // Updated label
           ),
         ],
       ),
