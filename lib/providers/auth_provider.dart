@@ -15,12 +15,14 @@ class AuthProvider extends ChangeNotifier {
   bool _isInitialized = false;
   String? _errorMessage;
   bool _isAuthenticated = false;
+  bool _isAdmin = false;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
+  bool get isAdmin => _isAdmin;
 
   AuthProvider() {
     _initializeAuth();
@@ -31,6 +33,14 @@ class AuthProvider extends ChangeNotifier {
       _user = user;
       _isAuthenticated = user != null;
       _isInitialized = true;
+      
+      // Vérifier le rôle admin
+      if (user != null) {
+        _checkAdminStatus(user);
+      } else {
+        _isAdmin = false;
+      }
+      
       notifyListeners();
     });
   }
@@ -249,17 +259,18 @@ class AuthProvider extends ChangeNotifier {
         _auth.signOut(),
         _googleSignIn.signOut(),
       ]);
-      
-      // Reset des états
+
       _user = null;
       _isAuthenticated = false;
+      _isAdmin = false;
       _errorMessage = null;
       
     } catch (e) {
-      debugPrint('Erreur lors de la déconnexion: $e');
       _setError('Erreur lors de la déconnexion');
+      debugPrint('SignOut Error: $e');
     } finally {
       _setLoading(false);
+      notifyListeners();
     }
   }
 
@@ -309,38 +320,32 @@ class AuthProvider extends ChangeNotifier {
   // Gestion des erreurs d'authentification - Améliorée
   void _handleAuthError(FirebaseAuthException e) {
     switch (e.code) {
-      case 'weak-password':
-        _setError('Le mot de passe doit contenir au moins 6 caractères');
-        break;
-      case 'email-already-in-use':
-        _setError('Un compte existe déjà avec cette adresse email');
-        break;
       case 'user-not-found':
-        _setError('Aucun utilisateur trouvé avec cette adresse email');
+        _setError('Aucun utilisateur trouvé avec cet email');
         break;
       case 'wrong-password':
         _setError('Mot de passe incorrect');
         break;
+      case 'email-already-in-use':
+        _setError('Cet email est déjà utilisé');
+        break;
       case 'invalid-email':
-        _setError('Adresse email invalide');
+        _setError('Email invalide');
+        break;
+      case 'weak-password':
+        _setError('Le mot de passe est trop faible');
         break;
       case 'user-disabled':
         _setError('Ce compte a été désactivé');
         break;
       case 'too-many-requests':
-        _setError('Trop de tentatives. Veuillez réessayer dans quelques minutes');
+        _setError('Trop de tentatives. Veuillez réessayer plus tard');
         break;
-      case 'network-request-failed':
-        _setError('Problème de connexion réseau. Vérifiez votre connexion internet');
-        break;
-      case 'invalid-credential':
-        _setError('Identifiants invalides');
-        break;
-      case 'account-exists-with-different-credential':
-        _setError('Un compte existe déjà avec une méthode de connexion différente');
+      case 'session-expired':
+        _handleSessionExpired();
         break;
       default:
-        _setError('Erreur d\'authentification: ${e.message ?? 'Erreur inconnue'}');
+        _setError('Une erreur d\'authentification est survenue');
     }
     debugPrint('Auth Error [${e.code}]: ${e.message}');
   }
@@ -384,12 +389,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Vérifier si l'utilisateur est admin
-  bool get isAdmin {
-    const adminEmail = 'narcissenkodo@gmail.com';
-    return _user?.email == adminEmail;
-  }
-
   // Obtenir les données utilisateur depuis Firestore
   Future<Map<String, dynamic>?> getUserData() async {
     try {
@@ -401,5 +400,21 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('Error getting user data: $e');
     }
     return null;
+  }
+
+  Future<void> _checkAdminStatus(User user) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      _isAdmin = userDoc.exists && (userDoc.data()?['isAdmin'] ?? false);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error checking admin status: $e');
+      _isAdmin = false;
+    }
+  }
+
+  void _handleSessionExpired() {
+    signOut();
+    _setError('Votre session a expiré. Veuillez vous reconnecter.');
   }
 }

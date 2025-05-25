@@ -52,14 +52,8 @@ class MyApp extends StatelessWidget {
             routes: {
               '/': (context) => const SplashScreen(),
               '/welcome': (context) => const WelcomeScreen(),
-              '/login': (context) {
-                final authProvider = Provider.of<AuthProvider>(context);
-                return authProvider.user != null ? const HomeScreen() : const LoginScreen();
-              },
-              '/signup': (context) {
-                final authProvider = Provider.of<AuthProvider>(context);
-                return authProvider.user != null ? const HomeScreen() : const SignupScreen();
-              },
+              '/login': (context) => const LoginScreen(),
+              '/signup': (context) => const SignupScreen(),
               '/home': (context) => const HomeScreen(),
               '/profile': (context) => const ProfileScreen(),
               '/video': (context) => const VideoPlayerScreen(),
