@@ -21,7 +21,8 @@ import 'screens/playlist/playlist_details_screen.dart';
 import 'utils/app_theme.dart';
 import 'services/youtube_service.dart';
 import 'providers/theme_provider.dart';
-import 'providers/comment_provider.dart'; // Added CommentProvider import
+import 'providers/comment_provider.dart';
+import 'providers/like_provider.dart'; // Added LikeProvider import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +60,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => VideoProvider()),
         ChangeNotifierProvider(create: (_) => ProgressProvider()),
-        ChangeNotifierProvider(create: (_) => CommentProvider()), // Added CommentProvider
+        ChangeNotifierProvider(create: (_) => CommentProvider()),
+        ChangeNotifierProvider(create: (_) => LikeProvider()), // Added LikeProvider
         Provider(create: (_) => YoutubeService()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],

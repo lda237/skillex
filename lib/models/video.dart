@@ -15,6 +15,7 @@ class Video {
   final List<String> tags;
   final String difficulty; // Débutant, Intermédiaire, Avancé
   final bool isPremium;
+  final int appLikesCount; // Added for in-app likes
 
   Video({
     required this.id,
@@ -30,6 +31,7 @@ class Video {
     this.tags = const [],
     this.difficulty = 'Débutant',
     this.isPremium = false,
+    this.appLikesCount = 0, // Added default value
   });
 
   // Convertir depuis JSON
@@ -48,6 +50,7 @@ class Video {
       tags: List<String>.from(json['tags'] ?? []),
       difficulty: json['difficulty'] ?? 'Débutant',
       isPremium: json['isPremium'] ?? false,
+      appLikesCount: json['appLikesCount'] ?? 0, // Added
     );
   }
 
@@ -67,6 +70,7 @@ class Video {
       'tags': tags,
       'difficulty': difficulty,
       'isPremium': isPremium,
+      'appLikesCount': appLikesCount, // Added
     };
   }
 
@@ -90,6 +94,7 @@ class Video {
       youtubeId: json['id'] ?? '',
       channelTitle: snippet['channelTitle'] ?? '',
       tags: List<String>.from(snippet['tags'] ?? []),
+      appLikesCount: 0, // Initialize app likes to 0 from YouTube API
     );
   }
 
@@ -109,6 +114,7 @@ class Video {
       tags: List<String>.from(data['tags'] ?? []),
       difficulty: data['difficulty'] ?? 'Débutant',
       isPremium: data['isPremium'] ?? false,
+      appLikesCount: data['appLikesCount'] ?? 0, // Added
     );
   }
 
@@ -128,6 +134,7 @@ class Video {
       'tags': tags,
       'difficulty': difficulty,
       'isPremium': isPremium,
+      'appLikesCount': appLikesCount, // Added
     };
   }
 
@@ -184,6 +191,7 @@ class Video {
     List<String>? tags,
     String? difficulty,
     bool? isPremium,
+    int? appLikesCount, // Added
   }) {
     return Video(
       id: id ?? this.id,
@@ -199,6 +207,7 @@ class Video {
       tags: tags ?? this.tags,
       difficulty: difficulty ?? this.difficulty,
       isPremium: isPremium ?? this.isPremium,
+      appLikesCount: appLikesCount ?? this.appLikesCount, // Added
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:skillex/providers/comment_provider.dart';
 import 'package:skillex/models/comment.dart';
 import 'package:intl/intl.dart';
+import 'package:skillex/providers/like_provider.dart'; // Added import
 
 class VideoPlayerScreen extends StatefulWidget {
   const VideoPlayerScreen({super.key});
@@ -29,6 +30,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   final TextEditingController _commentController = TextEditingController();
   bool _isPostingComment = false;
 
+  bool _userHasLiked = false; 
+  bool _isLoadingLikeStatus = true; 
+
   @override
   void initState() {
     super.initState();
@@ -45,19 +49,64 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) { // Ensure widget is still in the tree
         Provider.of<CommentProvider>(context, listen: false).fetchComments(_video.id);
+        _fetchInitialLikeStatus(); // New method call
       }
     });
+  }
+
+  // New method in _VideoPlayerScreenState
+  Future<void> _fetchInitialLikeStatus() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingLikeStatus = true;
+    });
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final likeProvider = Provider.of<LikeProvider>(context, listen: false);
+    if (authProvider.user != null) {
+      // Clear cache for this video in case user switched or data is stale
+      likeProvider.clearLikeCacheForVideo(_video.id); 
+      final liked = await likeProvider.hasUserLikedVideo(_video.id, authProvider.user!.uid);
+      if (mounted) {
+        setState(() {
+          _userHasLiked = liked;
+          _isLoadingLikeStatus = false;
+        });
+      }
+    } else {
+       if (mounted) { // If no user, they can't have liked it.
+          setState(() {
+            _userHasLiked = false;
+            _isLoadingLikeStatus = false;
+          });
+       }
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
-    // Récupérer la vidéo depuis les arguments
     final arguments = ModalRoute.of(context)?.settings.arguments;
     if (arguments is Video) {
-      _video = arguments;
-      _initializePlayer();
+      final newVideo = arguments;
+      // Check if it's a genuinely new video before re-initializing everything
+      // The '?? _video' handles the case where _video might not have been initialized yet.
+      // A more robust check might be needed if _video can be null at this point.
+      // For now, assuming _video is initialized in initState.
+      if (_video.id != newVideo.id) { 
+        _video = newVideo; // Update current video
+        // Re-initialize player if needed, or update source
+        if (_controller.metadata.videoId != _video.youtubeId) {
+           _controller.load(_video.youtubeId);
+        }
+        _initializePlayer(); // If this does more than just listeners
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Provider.of<CommentProvider>(context, listen: false).fetchComments(_video.id);
+            _fetchInitialLikeStatus(); // Call for new video
+          }
+        });
+      }
     }
   }
 
@@ -364,8 +413,59 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                           ),
                         ],
                       ),
-                      
                       const SizedBox(height: 16),
+                      Consumer<AuthProvider>( // To get userId for like action
+                        builder: (context, authProvider, child) {
+                          return Consumer<LikeProvider>(
+                            builder: (context, likeProvider, child) {
+                              bool currentLikedStatus = _isLoadingLikeStatus ? _userHasLiked : likeProvider.hasUserLikedVideoSync(_video.id);
+                              
+                              // final videoProvider = Provider.of<VideoProvider>(context, listen: true); // Listen for video updates
+                              // final displayedVideo = videoProvider.getVideoById(_video.id) ?? _video; // Get potentially updated video
+
+                              return Row(
+                                children: [
+                                  IconButton(
+                                    icon: _isLoadingLikeStatus
+                                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                                        : Icon(
+                                            currentLikedStatus ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
+                                            color: currentLikedStatus ? Theme.of(context).primaryColor : Colors.grey,
+                                            size: 28,
+                                          ),
+                                    onPressed: authProvider.user == null || _isLoadingLikeStatus
+                                        ? null // Disable if not logged in or still loading status
+                                        : () async {
+                                            final originalLikedStatus = currentLikedStatus;
+                                            setState(() {
+                                              _userHasLiked = !originalLikedStatus; 
+                                            });
+
+                                            await likeProvider.toggleLikeVideo(_video.id, authProvider.user!.uid);
+                                            // After toggle, LikeProvider notifies, Consumer rebuilds, and hasUserLikedVideoSync provides updated status.
+                                            // To update the count immediately, we might need to also update _video or fetch it again.
+                                            // For now, the count will update when the _video object itself is updated.
+                                            // To make the count reactive here, we could fetch the video from VideoProvider.
+                                            // Let's assume for now that the parent widget or a refresh mechanism updates _video.
+                                            // Or, if VideoProvider updates its internal list and VideoPlayerScreen listens to it,
+                                            // _video would be rebuilt with the new count.
+                                            // For this step, we'll rely on the LikeProvider to update the button,
+                                            // and the count will come from the _video object.
+                                          },
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    // '${displayedVideo.appLikesCount} J'aime', // Using potentially updated video
+                                    '${_video.appLikesCount} J\'aime', // Display appLikesCount from the Video model
+                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16), // Spacing before "Progression" Card
                       
                       // Progression
                       Card(

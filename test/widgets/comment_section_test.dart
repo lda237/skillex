@@ -16,19 +16,23 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart'; // For MockUser
 class MockCommentProvider extends Mock implements CommentProvider {}
 class MockAuthProvider extends Mock implements AuthProvider {}
 class MockProgressProvider extends Mock implements ProgressProvider {} // Added for completeness
+class MockLikeProvider extends Mock implements LikeProvider {} // Added MockLikeProvider
 
 // Helper function to create a testable VideoPlayerScreen instance
-Widget createTestableCommentSection({
+// Renaming for clarity as it's now more general
+Widget createTestableVideoPlayerScreen({
   required MockAuthProvider authProvider,
   required MockCommentProvider commentProvider,
-  required MockProgressProvider progressProvider, // Added
-  required Video video, // VideoPlayerScreen takes Video as argument
+  required MockProgressProvider progressProvider,
+  required MockLikeProvider likeProvider, // Added LikeProvider
+  required Video video, 
 }) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
       ChangeNotifierProvider<CommentProvider>.value(value: commentProvider),
-      ChangeNotifierProvider<ProgressProvider>.value(value: progressProvider), // Added
+      ChangeNotifierProvider<ProgressProvider>.value(value: progressProvider),
+      ChangeNotifierProvider<LikeProvider>.value(value: likeProvider), // Added LikeProvider
     ],
     child: MaterialApp(
       home: VideoPlayerScreen(),
@@ -59,7 +63,8 @@ Widget createTestableCommentSection({
 void main() {
   late MockAuthProvider mockAuthProvider;
   late MockCommentProvider mockCommentProvider;
-  late MockProgressProvider mockProgressProvider; // Added
+  late MockProgressProvider mockProgressProvider;
+  late MockLikeProvider mockLikeProvider; // Added LikeProvider
   late Video mockVideo;
   late MockUser mockUser; // From firebase_auth_mocks
 
@@ -72,7 +77,8 @@ void main() {
   setUp(() {
     mockAuthProvider = MockAuthProvider();
     mockCommentProvider = MockCommentProvider();
-    mockProgressProvider = MockProgressProvider(); // Added
+    mockProgressProvider = MockProgressProvider();
+    mockLikeProvider = MockLikeProvider(); // Initialize MockLikeProvider
 
     mockVideo = Video(
       id: 'vid1',
@@ -80,15 +86,16 @@ void main() {
       title: 'Test Video',
       description: 'A video for testing comments.',
       category: 'Testing',
-      channelTitle: 'Tester', // Added based on Video model
-      duration: '5:00', // Added based on Video model
+      channelTitle: 'Tester', 
+      // duration: '5:00', // Assuming duration is int in seconds as per model
+      duration: 300, // Example: 5 minutes in seconds
       thumbnailUrl: 'http://example.com/thumb.jpg',
       publishedAt: DateTime.now(),
-      viewCount: 100, // Added based on Video model
-      likeCount: 10,  // Added based on Video model
-      isFeatured: false, // Added based on Video model
-      difficulty: 'Beginner', // Added based on Video model
-      tags: ['test'], // Added based on Video model
+      viewCount: 100, 
+      appLikesCount: 0, // Initialize appLikesCount, likeCount was a typo
+      isFeatured: false, 
+      difficulty: 'Beginner', 
+      tags: ['test'], 
     );
 
     mockUser = MockUser(
@@ -124,25 +131,35 @@ void main() {
         totalDuration: any(named: 'totalDuration')))
     .thenAnswer((_) async {});
     when(() => mockProgressProvider.markVideoAsCompleted(any(), any())).thenAnswer((_) async {});
-    // Add other stubs for ProgressProvider if needed
+    
+    // Default stubs for LikeProvider
+    when(() => mockLikeProvider.hasUserLikedVideo(any(), any())).thenAnswer((_) async => false);
+    when(() => mockLikeProvider.hasUserLikedVideoSync(any())).thenReturn(false);
+    when(() => mockLikeProvider.toggleLikeVideo(any(), any())).thenAnswer((_) async {});
+    when(() => mockLikeProvider.clearLikeCacheForVideo(any())).thenAnswer((_) {});
+    when(() => mockLikeProvider.clearAllLikeCache()).thenAnswer((_) {}); // Added for completeness
   });
 
-  // Helper to pump widget and settle
-  Future<void> pumpCommentSection(WidgetTester tester) async {
-    await tester.pumpWidget(createTestableCommentSection(
+  // Helper to pump widget and settle, renamed for clarity
+  Future<void> pumpVideoPlayerScreen(WidgetTester tester) async {
+    await tester.pumpWidget(createTestableVideoPlayerScreen(
       authProvider: mockAuthProvider,
       commentProvider: mockCommentProvider,
-      progressProvider: mockProgressProvider, // Added
+      progressProvider: mockProgressProvider,
+      likeProvider: mockLikeProvider, // Added LikeProvider
       video: mockVideo,
     ));
     // pumpAndSettle can be long; use pump for more control if needed
-    await tester.pumpAndSettle(const Duration(seconds: 1)); // Allow time for UI, including player init if any
+    // VideoPlayerScreen's initState calls _fetchInitialLikeStatus, which is async.
+    // It also calls commentProvider.fetchComments.
+    // We need to ensure these async operations complete.
+    await tester.pumpAndSettle(); 
   }
 
   group('Comment Section UI Tests', () {
     testWidgets('shows no input field when logged out', (WidgetTester tester) async {
       when(() => mockAuthProvider.user).thenReturn(null);
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
 
       expect(find.byType(TextField), findsNothing);
       // The UI shows SizedBox.shrink() when user is null for the comment input part
@@ -150,7 +167,7 @@ void main() {
 
     testWidgets('shows comment input field when logged in', (WidgetTester tester) async {
       when(() => mockAuthProvider.user).thenReturn(mockUser);
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
       
       expect(find.widgetWithText(TextField, 'Ajouter un commentaire...'), findsOneWidget);
       expect(find.widgetWithIcon(IconButton, Icons.send), findsOneWidget);
@@ -164,13 +181,17 @@ void main() {
       when(() => mockCommentProvider.comments).thenReturn(comments);
       when(() => mockAuthProvider.user).thenReturn(mockUser);
 
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
 
       expect(find.text('User One'), findsOneWidget);
       expect(find.text('First comment!'), findsOneWidget);
       expect(find.text('User Two'), findsOneWidget);
       expect(find.text('Second comment!'), findsOneWidget);
       // Check for avatars (presence of CircleAvatar, though not specific image)
+      // The like button also has a CircleAvatar if user has no photoURL, adjust count if needed.
+      // For now, let's assume profile avatars are distinct enough or test more specifically.
+      // The video player screen itself might have user avatars for comments.
+      // The like button itself doesn't have an avatar.
       expect(find.byType(CircleAvatar), findsNWidgets(comments.length));
     });
 
@@ -179,7 +200,7 @@ void main() {
       when(() => mockCommentProvider.isLoading).thenReturn(false);
       when(() => mockAuthProvider.user).thenReturn(mockUser);
 
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
       expect(find.text('Aucun commentaire pour le moment. Soyez le premier !'), findsOneWidget);
     });
 
@@ -188,21 +209,22 @@ void main() {
       when(() => mockCommentProvider.comments).thenReturn([]); 
       when(() => mockAuthProvider.user).thenReturn(mockUser);
 
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
       
       // The specific check is `if (commentProvider.isLoading && commentProvider.comments.isEmpty)`
       // This should find the CircularProgressIndicator inside the Consumer<CommentProvider>
-      final commentConsumerFinder = find.byWidgetPredicate((widget) => widget is Consumer<CommentProvider>);
-      final progressIndicatorFinder = find.descendant(
-        of: commentConsumerFinder,
+      // There might be other CircularProgressIndicators (e.g. for like button).
+      // Be specific if this fails. For now, assuming one main content loader.
+      final commentSectionLoader = find.descendant(
+        of: find.byType(Consumer<CommentProvider>), // Scope to comment section's consumer
         matching: find.byType(CircularProgressIndicator),
       );
-      expect(progressIndicatorFinder, findsOneWidget);
+      expect(commentSectionLoader, findsOneWidget);
     });
 
     testWidgets('allows typing and submitting a comment', (WidgetTester tester) async {
       when(() => mockAuthProvider.user).thenReturn(mockUser);
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
 
       final commentTextField = find.widgetWithText(TextField, 'Ajouter un commentaire...');
       expect(commentTextField, findsOneWidget);
@@ -220,15 +242,10 @@ void main() {
           userName: 'Test User',
           userProfilePicUrl: 'http://example.com/avatar.jpg'
       )).thenAnswer((_) async {
-          // Simulate the provider behavior upon successful comment:
-          // It might re-fetch comments, which would update the list.
-          // For this test, we primarily care about the call.
-          // If it clears the text field, we can check that.
           return true; 
       });
 
       await tester.tap(sendButton);
-      // Wait for the async addComment and subsequent UI updates (like clearing the field)
       await tester.pumpAndSettle(); 
 
       verify(() => mockCommentProvider.addComment(
@@ -249,7 +266,7 @@ void main() {
         when(() => mockCommentProvider.comments).thenReturn(comments);
         when(() => mockAuthProvider.user).thenReturn(mockUser);
 
-        await pumpCommentSection(tester);
+        await pumpVideoPlayerScreen(tester); // Using new helper name
 
         expect(find.widgetWithText(TextButton, 'Charger plus de commentaires'), findsOneWidget);
     });
@@ -260,11 +277,10 @@ void main() {
         final comments = List.generate(5, (i) => Comment(id: 'c$i', videoId: 'vid1', userId: 'u$i', userName: 'User $i', text: 'Comment $i', timestamp: Timestamp.now()));
         when(() => mockCommentProvider.comments).thenReturn(comments);
         when(() => mockAuthProvider.user).thenReturn(mockUser);
-        // Specific stub for fetchMoreComments
         when(() => mockCommentProvider.fetchMoreComments('vid1')).thenAnswer((_) async {});
 
 
-        await pumpCommentSection(tester);
+        await pumpVideoPlayerScreen(tester); // Using new helper name
         final loadMoreButton = find.widgetWithText(TextButton, 'Charger plus de commentaires');
         await tester.tap(loadMoreButton);
         await tester.pumpAndSettle();
@@ -275,41 +291,136 @@ void main() {
     testWidgets('shows loading indicator at bottom when loading more comments', (WidgetTester tester) async {
       final initialComments = List.generate(5, (i) => Comment(id: 'c$i', videoId: 'vid1', userId: 'u$i', userName: 'User $i', text: 'Comment $i', timestamp: Timestamp.now()));
       when(() => mockCommentProvider.comments).thenReturn(initialComments);
-      when(() => mockCommentProvider.hasMoreComments).thenReturn(true); // Important
+      when(() => mockCommentProvider.hasMoreComments).thenReturn(true); 
       when(() => mockAuthProvider.user).thenReturn(mockUser);
 
-      // Initial state: not loading more
       when(() => mockCommentProvider.isLoading).thenReturn(false);
-      await pumpCommentSection(tester);
+      await pumpVideoPlayerScreen(tester); // Using new helper name
 
-      // Ensure "Load more" is visible and no bottom indicator
       expect(find.widgetWithText(TextButton, 'Charger plus de commentaires'), findsOneWidget);
       expect(find.byWidgetPredicate(
           (widget) => widget is Padding && widget.child is Center && (widget.child as Center).child is CircularProgressIndicator
       ), findsNothing);
 
-
-      // Trigger loading more: Tap the button
-      // For testing the UI state *during* loading, we need to control isLoading state change
       when(() => mockCommentProvider.fetchMoreComments('vid1')).thenAnswer((_) async {
-        // Simulate provider behavior: sets isLoading to true, then fetches
         when(() => mockCommentProvider.isLoading).thenReturn(true);
-        // Manually trigger a pump to rebuild with new isLoading state
         await tester.pump(); 
-        // Simulate network delay if necessary, then set isLoading to false and add new comments
       });
       
       await tester.tap(find.widgetWithText(TextButton, 'Charger plus de commentaires'));
-      await tester.pump(); // First pump for isLoading state change if provider notifies immediately
+      await tester.pump(); 
 
-      // Now check for the loading indicator at the bottom
-      // `if (commentProvider.isLoading && commentProvider.comments.isNotEmpty)`
-      final bottomIndicatorFinder = find.byWidgetPredicate(
+      final bottomIndicatorFinder = find.descendant( // More specific to comment section
+        of: find.byType(Consumer<CommentProvider>),
+        matching: find.byWidgetPredicate(
           (widget) => widget is Padding && widget.child is Center && (widget.child as Center).child is CircularProgressIndicator
+        )
       );
       expect(bottomIndicatorFinder, findsOneWidget);
     });
+  });
 
+  group('Like Button UI Tests', () {
+    // Helper to pump widget, ensuring VideoPlayerScreen receives the mockVideo
+      Future<void> pumpVideoPlayerScreenForLikeTests(WidgetTester tester) async { // Renamed to avoid conflict if original pumpCommentSection is still used
+      await tester.pumpWidget(createTestableVideoPlayerScreen( 
+        authProvider: mockAuthProvider,
+        commentProvider: mockCommentProvider, 
+        likeProvider: mockLikeProvider, 
+        progressProvider: mockProgressProvider, // Ensure all providers are passed
+        video: mockVideo, 
+      ));
+      await tester.pumpAndSettle(); 
+    }
+
+    testWidgets('displays like button and initial like count', (WidgetTester tester) async {
+      when(() => mockAuthProvider.user).thenReturn(mockUser); 
+      when(() => mockLikeProvider.hasUserLikedVideo(mockVideo.id, mockUser.uid)).thenAnswer((_) async => false);
+      when(() => mockLikeProvider.hasUserLikedVideoSync(mockVideo.id)).thenReturn(false);
+      
+      mockVideo = mockVideo.copyWith(appLikesCount: 10);
+
+      await pumpVideoPlayerScreenForLikeTests(tester);
+
+      expect(find.byIcon(Icons.thumb_up_alt_outlined), findsOneWidget);
+      expect(find.text('10 J\'aime'), findsOneWidget);
+    });
+
+    testWidgets('displays filled like icon if video is liked', (WidgetTester tester) async {
+      when(() => mockAuthProvider.user).thenReturn(mockUser);
+      when(() => mockLikeProvider.hasUserLikedVideo(mockVideo.id, mockUser.uid)).thenAnswer((_) async => true);
+      when(() => mockLikeProvider.hasUserLikedVideoSync(mockVideo.id)).thenReturn(true);
+      mockVideo = mockVideo.copyWith(appLikesCount: 11);
+
+      await pumpVideoPlayerScreenForLikeTests(tester);
+      
+      expect(find.byIcon(Icons.thumb_up_alt), findsOneWidget);
+      expect(find.text('11 J\'aime'), findsOneWidget);
+    });
+
+    testWidgets('calls toggleLikeVideo on tap and updates UI optimistically', (WidgetTester tester) async {
+      when(() => mockAuthProvider.user).thenReturn(mockUser);
+      when(() => mockLikeProvider.hasUserLikedVideo(mockVideo.id, mockUser.uid)).thenAnswer((_) async => false);
+      when(() => mockLikeProvider.hasUserLikedVideoSync(mockVideo.id)).thenReturn(false);
+      when(() => mockLikeProvider.toggleLikeVideo(mockVideo.id, mockUser.uid)).thenAnswer((_) async {});
+      
+      mockVideo = mockVideo.copyWith(appLikesCount: 5);
+      await pumpVideoPlayerScreenForLikeTests(tester);
+
+      expect(find.byIcon(Icons.thumb_up_alt_outlined), findsOneWidget);
+      
+      await tester.tap(find.byIcon(Icons.thumb_up_alt_outlined));
+      await tester.pump(); 
+
+      expect(find.byIcon(Icons.thumb_up_alt), findsOneWidget); 
+      
+      verify(() => mockLikeProvider.toggleLikeVideo(mockVideo.id, mockUser.uid)).called(1);
+      
+      await tester.pumpAndSettle(); 
+    });
+
+    testWidgets('Like button is disabled if user is not logged in', (WidgetTester tester) async {
+      when(() => mockAuthProvider.user).thenReturn(null); 
+      
+      mockVideo = mockVideo.copyWith(appLikesCount: 7);
+      await pumpVideoPlayerScreenForLikeTests(tester);
+
+      // Find the IconButton specifically. The icon itself might still be found.
+      final Finder iconButtonFinder = find.widgetWithIcon(IconButton, Icons.thumb_up_alt_outlined);
+      expect(iconButtonFinder, findsOneWidget);
+      final IconButton likeButton = tester.widget<IconButton>(iconButtonFinder);
+      expect(likeButton.onPressed, isNull); 
+      expect(find.text('7 J\'aime'), findsOneWidget); 
+    });
+    
+    testWidgets('Like button shows loading indicator while fetching initial status', (WidgetTester tester) async {
+      when(() => mockAuthProvider.user).thenReturn(mockUser);
+      when(() => mockLikeProvider.hasUserLikedVideo(mockVideo.id, mockUser.uid))
+          .thenAnswer((_) async {
+            await Future.delayed(const Duration(milliseconds: 100)); 
+            return true; 
+          });
+      when(() => mockLikeProvider.hasUserLikedVideoSync(mockVideo.id)).thenReturn(false);
+
+      await tester.pumpWidget(createTestableVideoPlayerScreen(
+        authProvider: mockAuthProvider,
+        commentProvider: mockCommentProvider,
+        likeProvider: mockLikeProvider,
+        progressProvider: mockProgressProvider,
+        video: mockVideo,
+      ));
+      
+      await tester.pump(); 
+      // The IconButton itself contains the CircularProgressIndicator as its child when _isLoadingLikeStatus is true.
+      final Finder circularProgressFinder = find.descendant(
+        of: find.byType(IconButton), // Scope it to be inside an IconButton
+        matching: find.byType(CircularProgressIndicator),
+      );
+      expect(circularProgressFinder, findsOneWidget);
+
+      await tester.pumpAndSettle(); 
+      expect(find.byIcon(Icons.thumb_up_alt), findsOneWidget); 
+    });
   });
 }
 ```
