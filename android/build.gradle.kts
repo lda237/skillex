@@ -1,3 +1,5 @@
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+
 buildscript {
     val kotlinVersion = "1.9.0"
     repositories {
@@ -42,6 +44,7 @@ subprojects {
         options.compilerArgs.addAll(listOf("-Xlint:unchecked"))
         sourceCompatibility = JavaVersion.VERSION_11.toString()
         targetCompatibility = JavaVersion.VERSION_11.toString()
+        java.toolchain.languageVersion.set(JavaLanguageVersion.of(11))
     }
     
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
