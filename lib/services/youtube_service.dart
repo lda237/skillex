@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added import
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -6,10 +7,21 @@ import '../models/video.dart';
 
 class YoutubeService {
   static const String _baseUrl = 'https://www.googleapis.com/youtube/v3';
-  static const String _apiKey = 'AIzaSyAFv67cynIZlrIyDQAWKgDjfgImXYSLWZs'; // À remplacer par votre clé API
+  // static const String _apiKey = 'AIzaSyAFv67cynIZlrIyDQAWKgDjfgImXYSLWZs'; // Old hardcoded key
+  static String? _apiKey; // New nullable API key
   static const String _channelId = 'UCb9CgMS8l2e8Q4ib7D5m5Yg'; // ID de la chaîne Skillex
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  static Future<void> initialize() async {
+    await dotenv.load(fileName: ".env");
+    _apiKey = dotenv.env['YOUTUBE_API_KEY'];
+    if (_apiKey == null) {
+      if (kDebugMode) { 
+        print("WARNING: YOUTUBE_API_KEY not found in .env file. YouTube API calls will likely fail.");
+      }
+    }
+  }
 
   // Récupérer les vidéos depuis Firestore (méthode principale)
   Future<List<Video>> fetchVideos() async {
@@ -37,7 +49,7 @@ class YoutubeService {
     try {
       // Récupérer les vidéos de la chaîne
       final channelId = _channelId;
-      final url = '$_baseUrl/search?part=snippet&channelId=$channelId&maxResults=50&type=video&key=$_apiKey';
+      final url = '$_baseUrl/search?part=snippet&channelId=$channelId&maxResults=50&type=video&key=${YoutubeService._apiKey}';
       
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) {
@@ -67,7 +79,7 @@ class YoutubeService {
   // Récupérer les détails d'une vidéo YouTube
   Future<Video?> _fetchVideoDetails(String videoId) async {
     try {
-      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&id=$videoId&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&id=$videoId&key=${YoutubeService._apiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -230,7 +242,7 @@ class YoutubeService {
   // Valider si une vidéo YouTube existe
   Future<bool> validateYouTubeVideo(String youtubeId) async {
     try {
-      final url = '$_baseUrl/videos?part=id&id=$youtubeId&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=id&id=$youtubeId&key=${YoutubeService._apiKey}';
       final response = await http.get(Uri.parse(url));
       
       if (response.statusCode == 200) {
@@ -296,7 +308,7 @@ class YoutubeService {
   // Méthode pour récupérer les vidéos populaires
   Future<List<Video>> getPopularVideos() async {
     try {
-      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=10&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=10&key=${YoutubeService._apiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -315,7 +327,7 @@ class YoutubeService {
   // Méthode pour récupérer les vidéos d'une playlist
   Future<List<Video>> getPlaylistVideos(String playlistId) async {
     try {
-      final url = '$_baseUrl/playlistItems?part=snippet&playlistId=$playlistId&maxResults=50&key=$_apiKey';
+      final url = '$_baseUrl/playlistItems?part=snippet&playlistId=$playlistId&maxResults=50&key=${YoutubeService._apiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -342,7 +354,7 @@ class YoutubeService {
   // Méthode pour rechercher des vidéos sur YouTube
   Future<List<Video>> searchYouTubeVideos(String query) async {
     try {
-      final url = '$_baseUrl/search?part=snippet&q=$query&type=video&maxResults=10&key=$_apiKey';
+      final url = '$_baseUrl/search?part=snippet&q=$query&type=video&maxResults=10&key=${YoutubeService._apiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {

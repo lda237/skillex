@@ -44,6 +44,7 @@ dependencies:
   # Icons & Fonts
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
+  flutter_dotenv: ^5.1.0 # Added flutter_dotenv
 
 dev_dependencies:
   flutter_test:

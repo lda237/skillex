@@ -29,6 +29,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize YoutubeService (loads API key)
+  await YoutubeService.initialize(); 
+
   // Initialize Crashlytics
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
 

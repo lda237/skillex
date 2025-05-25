@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Added import
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/progress_provider.dart';
@@ -68,10 +69,17 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Profil'),
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
+      title: Text(
+        'Mon Profil',
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      elevation: 2,
+      iconTheme: const IconThemeData(color: Colors.white), // For back button and other icons if any
       actions: [_buildPopupMenu()],
     );
   }

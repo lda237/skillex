@@ -6,6 +6,8 @@ import '../../providers/video_provider.dart';
 import '../../providers/playlist_provider.dart';
 import '../../agents/ui/video_card.dart';
 import '../../agents/ui/playlist_list.dart';
+import '../../widgets/common_error_widget.dart'; // Added import
+import '../../widgets/common_empty_state_widget.dart'; // Added import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,17 +23,17 @@ class _HomeScreenState extends State<HomeScreen>
   
   String _selectedCategory = 'Tous';
   int _currentIndex = 0;
-  bool _isSearching = false;
+  // bool _isSearching = false; // Removed
   
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late AnimationController _scaleController;
-  late AnimationController _searchAnimationController;
+  // late AnimationController _searchAnimationController; // Removed
   
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _searchAnimation;
+  // late Animation<double> _searchAnimation; // Removed
 
   final List<String> categories = [
     'Tous',
@@ -59,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     _initializeAnimations();
     _loadInitialData();
-    _setupScrollListener();
+    // _setupScrollListener(); // Removed
   }
 
   void _initializeAnimations() {
@@ -78,10 +80,10 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
     );
 
-    _searchAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
+    // _searchAnimationController = AnimationController( // Removed
+    //   duration: const Duration(milliseconds: 300), // Removed
+    //   vsync: this, // Removed
+    // ); // Removed
 
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
@@ -104,10 +106,10 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.elasticOut,
     ));
 
-    _searchAnimation = CurvedAnimation(
-      parent: _searchAnimationController,
-      curve: Curves.easeInOut,
-    );
+    // _searchAnimation = CurvedAnimation( // Removed
+    //   parent: _searchAnimationController, // Removed
+    //   curve: Curves.easeInOut, // Removed
+    // ); // Removed
 
     // Démarrer les animations en séquence
     _startAnimationSequence();
@@ -175,18 +177,18 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _setupScrollListener() {
-    _scrollController.addListener(() {
-      // Cacher/montrer la barre de recherche selon le scroll
-      if (_scrollController.offset > 100 && !_isSearching) {
-        setState(() => _isSearching = true);
-        _searchAnimationController.forward();
-      } else if (_scrollController.offset <= 100 && _isSearching) {
-        setState(() => _isSearching = false);
-        _searchAnimationController.reverse();
-      }
-    });
-  }
+  // void _setupScrollListener() { // Removed
+  //   _scrollController.addListener(() { // Removed
+  //     // Cacher/montrer la barre de recherche selon le scroll // Removed
+  //     if (_scrollController.offset > 100 && !_isSearching) { // Removed
+  //       setState(() => _isSearching = true); // Removed
+  //       _searchAnimationController.forward(); // Removed
+  //     } else if (_scrollController.offset <= 100 && _isSearching) { // Removed
+  //       setState(() => _isSearching = false); // Removed
+  //       _searchAnimationController.reverse(); // Removed
+  //     } // Removed
+  //   }); // Removed
+  // } // Removed
 
   @override
   void dispose() {
@@ -195,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen>
     _fadeController.dispose();
     _slideController.dispose();
     _scaleController.dispose();
-    _searchAnimationController.dispose();
+    // _searchAnimationController.dispose(); // Removed
     super.dispose();
   }
 
@@ -387,30 +389,30 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildFloatingSearchBar() {
-    return AnimatedBuilder(
-      animation: _searchAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, -_searchAnimation.value * 80),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(51),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: _buildSearchField(),
-          ),
-        );
-      },
-    );
-  }
+  // Widget _buildFloatingSearchBar() { // Removed
+  //   return AnimatedBuilder( // Removed
+  //     animation: _searchAnimation, // Removed
+  //     builder: (context, child) { // Removed
+  //       return Transform.translate( // Removed
+  //         offset: Offset(0, -_searchAnimation.value * 80), // Removed
+  //         child: Container( // Removed
+  //           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Removed
+  //           decoration: BoxDecoration( // Removed
+  //             borderRadius: BorderRadius.circular(16), // Removed
+  //             boxShadow: [ // Removed
+  //               BoxShadow( // Removed
+  //                 color: Colors.black.withAlpha(51), // Removed
+  //                 blurRadius: 20, // Removed
+  //                 offset: const Offset(0, 8), // Removed
+  //               ), // Removed
+  //             ], // Removed
+  //           ), // Removed
+  //           child: _buildSearchField(), // Removed
+  //         ), // Removed
+  //       ); // Removed
+  //     }, // Removed
+  //   ); // Removed
+  // } // Removed
 
   Widget _buildEnhancedSearchBar() {
     return SlideTransition(
@@ -674,75 +676,18 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (videoProvider.error != null) {
       return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Erreur de chargement',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                videoProvider.error!,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => videoProvider.loadVideos(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
-              ),
-            ],
-          ),
+        child: CommonErrorWidget(
+          errorMessage: videoProvider.error!,
+          onRetry: () => videoProvider.loadVideos(),
         ),
       );
     }
 
     if (videoProvider.videos.isEmpty) {
       return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.video_library_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Aucune vidéo trouvée',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Essayez de modifier vos critères de recherche',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
+        child: CommonEmptyStateWidget(
+          message: 'Aucune vidéo trouvée.\nEssayez de modifier vos critères de recherche ou sélectionnez une autre catégorie.',
+          icon: Icons.video_library_outlined,
         ),
       );
     }
@@ -986,60 +931,57 @@ class _HomeScreenState extends State<HomeScreen>
                 playlistProvider.loadPublicPlaylists(),
               ]);
             },
-            child: Stack(
-              children: [
-                CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    _buildEnhancedAppBar(),
-                    SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          _buildEnhancedSearchBar(),
-                          _buildSectionTitle('Catégories', Icons.category_rounded),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 60,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: categories.length,
-                              itemBuilder: (context, index) {
-                                return _buildEnhancedCategoryChip(categories[index], index);
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
+            // The Stack is removed as _buildFloatingSearchBar is removed.
+            // CustomScrollView becomes the direct child of RefreshIndicator.
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                _buildEnhancedAppBar(),
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      _buildEnhancedSearchBar(), // This is the primary search bar now
+                      _buildSectionTitle('Catégories', Icons.category_rounded),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 60,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: categories.length,
+                          itemBuilder: (context, index) {
+                            return _buildEnhancedCategoryChip(categories[index], index);
+                          },
+                        ),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Consumer<PlaylistProvider>(
-                        builder: (context, playlistProvider, child) {
-                          return _buildPlaylistSection(playlistProvider);
-                        },
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 24),
-                          _buildSectionTitle('Formations recommandées', Icons.star_rounded),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                    Consumer<VideoProvider>(
-                      builder: (context, videoProvider, child) {
-                        return _buildVideoList(videoProvider);
-                      },
-                    ),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 100),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
-                if (_isSearching) _buildFloatingSearchBar(),
+                SliverToBoxAdapter(
+                  child: Consumer<PlaylistProvider>(
+                    builder: (context, playlistProvider, child) {
+                      return _buildPlaylistSection(playlistProvider);
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Formations recommandées', Icons.star_rounded),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+                Consumer<VideoProvider>(
+                  builder: (context, videoProvider, child) {
+                    return _buildVideoList(videoProvider);
+                  },
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 100), // For bottom padding
+                ),
               ],
             ),
           ),
