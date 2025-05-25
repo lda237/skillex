@@ -126,6 +126,20 @@ class _HomeScreenState extends State<HomeScreen>
   void _loadInitialData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        
+        // Vérifier l'authentification
+        if (!authProvider.isAuthenticated) {
+          Navigator.pushReplacementNamed(context, '/login');
+          return;
+        }
+
+        // Gérer les erreurs d'authentification
+        if (authProvider.errorMessage != null) {
+          _handleAuthError();
+          return;
+        }
+
         final videoProvider = Provider.of<VideoProvider>(context, listen: false);
         final playlistProvider = Provider.of<PlaylistProvider>(context, listen: false);
         
@@ -138,6 +152,27 @@ class _HomeScreenState extends State<HomeScreen>
         }
       }
     });
+  }
+
+  void _handleAuthError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          Provider.of<AuthProvider>(context, listen: false).errorMessage ?? 
+          'Une erreur d\'authentification est survenue'
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Se reconnecter',
+          textColor: Colors.white,
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+        ),
+      ),
+    );
   }
 
   void _setupScrollListener() {
@@ -919,76 +954,98 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context);
     
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: RefreshIndicator(
-        onRefresh: () async {
-          final videoProvider = Provider.of<VideoProvider>(context, listen: false);
-          final playlistProvider = Provider.of<PlaylistProvider>(context, listen: false);
-          
-          await Future.wait([
-            videoProvider.loadVideos(),
-            playlistProvider.loadPublicPlaylists(),
-          ]);
-        },
-        child: Stack(
-          children: [
-            CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                _buildEnhancedAppBar(),
-                SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      _buildEnhancedSearchBar(),
-                      _buildSectionTitle('Catégories', Icons.category_rounded),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 60,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: categories.length,
-                          itemBuilder: (context, index) {
-                            return _buildEnhancedCategoryChip(categories[index], index);
-                          },
-                        ),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Afficher un indicateur de chargement pendant l'authentification
+        if (authProvider.isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Vérifier l'authentification
+        if (!authProvider.isAuthenticated) {
+          return const Scaffold(
+            body: Center(
+              child: Text('Redirection vers la page de connexion...'),
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          body: RefreshIndicator(
+            onRefresh: () async {
+              final videoProvider = Provider.of<VideoProvider>(context, listen: false);
+              final playlistProvider = Provider.of<PlaylistProvider>(context, listen: false);
+              
+              await Future.wait([
+                videoProvider.loadVideos(),
+                playlistProvider.loadPublicPlaylists(),
+              ]);
+            },
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    _buildEnhancedAppBar(),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          _buildEnhancedSearchBar(),
+                          _buildSectionTitle('Catégories', Icons.category_rounded),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 60,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: categories.length,
+                              itemBuilder: (context, index) {
+                                return _buildEnhancedCategoryChip(categories[index], index);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Consumer<PlaylistProvider>(
+                        builder: (context, playlistProvider, child) {
+                          return _buildPlaylistSection(playlistProvider);
+                        },
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildSectionTitle('Formations recommandées', Icons.star_rounded),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    Consumer<VideoProvider>(
+                      builder: (context, videoProvider, child) {
+                        return _buildVideoList(videoProvider);
+                      },
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 100),
+                    ),
+                  ],
                 ),
-                SliverToBoxAdapter(
-                  child: Consumer<PlaylistProvider>(
-                    builder: (context, playlistProvider, child) {
-                      return _buildPlaylistSection(playlistProvider);
-                    },
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Formations recommandées', Icons.star_rounded),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-                Consumer<VideoProvider>(
-                  builder: (context, videoProvider, child) {
-                    return _buildVideoList(videoProvider);
-                  },
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
-                ),
+                if (_isSearching) _buildFloatingSearchBar(),
               ],
             ),
-            if (_isSearching) _buildFloatingSearchBar(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildEnhancedBottomNav(),
+          ),
+          bottomNavigationBar: _buildEnhancedBottomNav(),
+        );
+      },
     );
   }
 }
