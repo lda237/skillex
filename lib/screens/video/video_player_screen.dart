@@ -6,6 +6,9 @@ import '../../models/video.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:skillex/providers/comment_provider.dart';
+import 'package:skillex/models/comment.dart';
+import 'package:intl/intl.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   const VideoPlayerScreen({super.key});
@@ -23,6 +26,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
+  final TextEditingController _commentController = TextEditingController();
+  bool _isPostingComment = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +41,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         mute: false,
       ),
     );
+    // Fetch comments
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) { // Ensure widget is still in the tree
+        Provider.of<CommentProvider>(context, listen: false).fetchComments(_video.id);
+      }
+    });
   }
 
   @override
@@ -393,6 +405,159 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                           ),
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Commentaires',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Comment Input Section (conditionally displayed)
+                      Consumer<AuthProvider>(
+                        builder: (context, authProvider, child) {
+                          if (authProvider.user != null) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _commentController,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Ajouter un commentaire...',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      ),
+                                      maxLines: 3,
+                                      minLines: 1,
+                                      enabled: !_isPostingComment,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _isPostingComment
+                                      ? const CircularProgressIndicator()
+                                      : IconButton(
+                                          icon: const Icon(Icons.send),
+                                          onPressed: () async {
+                                            if (_commentController.text.trim().isEmpty) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Le commentaire ne peut pas être vide.')),
+                                              );
+                                              return;
+                                            }
+                                            setState(() {
+                                              _isPostingComment = true;
+                                            });
+                                            final success = await Provider.of<CommentProvider>(context, listen: false).addComment(
+                                              videoId: _video.id,
+                                              text: _commentController.text.trim(),
+                                              userId: authProvider.user!.uid,
+                                              userName: authProvider.user!.displayName ?? 'Utilisateur Anonyme',
+                                              userProfilePicUrl: authProvider.user!.photoURL,
+                                            );
+                                            if (success) {
+                                              _commentController.clear();
+                                            } else {
+                                              if (mounted) {
+                                                 ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text(Provider.of<CommentProvider>(context, listen: false).error ?? 'Erreur lors de l\'envoi')),
+                                                );
+                                              }
+                                            }
+                                            if (mounted) {
+                                              setState(() {
+                                                _isPostingComment = false;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            return const SizedBox.shrink(); // Or a message "Log in to comment"
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Comments List Section
+                      Consumer<CommentProvider>(
+                        builder: (context, commentProvider, child) {
+                          if (commentProvider.isLoading && commentProvider.comments.isEmpty) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (commentProvider.error != null && commentProvider.comments.isEmpty) {
+                            return Center(child: Text(commentProvider.error!));
+                          }
+                          if (commentProvider.comments.isEmpty) {
+                            return const Center(child: Text('Aucun commentaire pour le moment. Soyez le premier !'));
+                          }
+
+                          return Column(
+                            children: [
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: commentProvider.comments.length,
+                                itemBuilder: (context, index) {
+                                  final comment = commentProvider.comments[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 18,
+                                          backgroundImage: comment.userProfilePicUrl != null
+                                              ? NetworkImage(comment.userProfilePicUrl!)
+                                              : null,
+                                          child: comment.userProfilePicUrl == null
+                                              ? const Icon(Icons.person, size: 18)
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                comment.userName,
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                              ),
+                                              Text(
+                                                DateFormat('dd MMM yyyy, HH:mm').format(comment.timestamp.toDate()),
+                                                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(comment.text, style: const TextStyle(fontSize: 14)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              if (commentProvider.hasMoreComments && !commentProvider.isLoading)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Provider.of<CommentProvider>(context, listen: false).fetchMoreComments(_video.id);
+                                    },
+                                    child: const Text('Charger plus de commentaires'),
+                                  ),
+                                ),
+                              if (commentProvider.isLoading && commentProvider.comments.isNotEmpty)
+                                 const Padding(
+                                   padding: EdgeInsets.all(8.0),
+                                   child: Center(child: CircularProgressIndicator()),
+                                 ),
+                            ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -408,6 +573,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    _commentController.dispose(); // Add this
     super.dispose();
   }
 }

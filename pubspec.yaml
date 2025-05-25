@@ -17,6 +17,7 @@ dependencies:
   google_sign_in: ^6.1.6
   firebase_storage: ^12.1.1
   image_picker: ^1.1.1
+  firebase_crashlytics: ^3.4.0
   
   # YouTube Player
   youtube_player_flutter: ^9.1.1
@@ -49,6 +50,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.3
+  mocktail: ^1.0.0
+  fake_cloud_firestore: ^2.5.1 # Added
+  firebase_auth_mocks: ^0.13.0 # Added
 
 flutter:
   uses-material-design: true

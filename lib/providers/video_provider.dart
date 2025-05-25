@@ -3,7 +3,10 @@ import '../models/video.dart';
 import '../services/youtube_service.dart';
 
 class VideoProvider with ChangeNotifier {
-  final YoutubeService _youtubeService = YoutubeService();
+  late final YoutubeService _youtubeService;
+
+  VideoProvider({YoutubeService? youtubeService})
+      : _youtubeService = youtubeService ?? YoutubeService();
   
   List<Video> _videos = [];
   List<Video> _filteredVideos = [];
