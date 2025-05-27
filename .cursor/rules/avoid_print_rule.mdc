@@ -1,0 +1,46 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+{
+  "name": "avoid_print_rule",
+  "version": "1.0.0",
+  "description": "Règle pour éviter l'utilisation de print dans le code",
+  "rules": {
+    "pattern": {
+      "regex": "print\\(",
+      "replacement": "DebugLogger.instance.log",
+      "example": {
+        "before": "print('Error: $error')",
+        "after": "DebugLogger.instance.log('Error: $error', level: LogLevel.error)"
+      }
+    },
+    "validation": {
+      "allowed_logging": [
+        "DebugLogger.instance.log",
+        "debugPrint",
+        "logger.log"
+      ],
+      "forbidden_logging": [
+        "print",
+        "console.log",
+        "System.out.println"
+      ]
+    },
+    "documentation": {
+      "description": "Utiliser DebugLogger au lieu de print",
+      "reason": "Meilleure gestion des logs et traçabilité",
+      "examples": [
+        {
+          "bad": "print('User logged in')",
+          "good": "DebugLogger.instance.log('User logged in', level: LogLevel.info)"
+        },
+        {
+          "bad": "print('Error: $error')",
+          "good": "DebugLogger.instance.log('Error: $error', level: LogLevel.error)"
+        }
+      ]
+    }
+  }
+}

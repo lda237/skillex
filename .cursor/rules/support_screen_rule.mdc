@@ -1,0 +1,72 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Règles de la page de support
+
+## Structure de la page
+- Implémenter dans `lib/screens/support/support_screen.dart`
+- Utiliser `Scaffold` avec `AppBar`
+- Organiser le contenu avec `SingleChildScrollView`
+- Diviser en sections avec des titres clairs
+
+## Sections obligatoires
+1. En-tête
+   - Logo MediaSystem
+   - Titre "Support Skillex"
+   - Style avec Google Fonts
+
+2. Contact
+   - Email de support (dev@mediasystem.cm)
+   - Site web (mediasystem.cm)
+   - Téléphone
+   - Utiliser `ListTile` avec icônes
+
+3. Horaires
+   - Jours de la semaine
+   - Heures d'ouverture
+   - Format clair et lisible
+
+4. FAQ
+   - Questions fréquentes
+   - Utiliser `ExpansionTile`
+   - Réponses détaillées
+
+5. Logs système
+   - Afficher les logs avec `DebugLogger`
+   - Gérer le chargement
+   - Style monospace
+   - Défilement horizontal
+
+## Style et UX
+- Utiliser le thème de l'application
+- Espacement cohérent
+- Animations fluides
+- Gestion des erreurs
+- Retours visuels
+
+## Exemple de code
+```dart
+Scaffold(
+  appBar: AppBar(title: Text('Support')),
+  body: SingleChildScrollView(
+    child: Column(
+      children: [
+        _buildHeader(),
+        _buildContactSection(),
+        _buildHoursSection(),
+        _buildFAQSection(),
+        _buildLogsSection(),
+      ],
+    ),
+  ),
+)
+```
+
+## Vérifications
+- Tous les liens doivent être cliquables
+- Les logs doivent être lisibles
+- La FAQ doit être facile à naviguer
+- Le design doit être responsive
+- Les textes doivent être en français

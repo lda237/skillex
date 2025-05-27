@@ -1,0 +1,53 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+{
+  "name": "java_version_rule",
+  "version": "1.0.0",
+  "description": "Règle pour la vérification de la version Java",
+  "rules": {
+    "pattern": {
+      "regex": "java\\.version=([0-9]+)",
+      "validation": {
+        "min_version": 11,
+        "recommended_version": 17
+      }
+    },
+    "configuration": {
+      "gradle_properties": {
+        "org.gradle.java.home": "C:\\Program Files\\Java\\jdk-17",
+        "org.gradle.jvmargs": "-Xmx1536M"
+      },
+      "build_gradle": {
+        "compileOptions": {
+          "sourceCompatibility": "JavaVersion.VERSION_17",
+          "targetCompatibility": "JavaVersion.VERSION_17"
+        },
+        "kotlinOptions": {
+          "jvmTarget": "'17'"
+        }
+      }
+    },
+    "documentation": {
+      "description": "Vérifier et configurer la version Java",
+      "requirements": [
+        "Java 11 ou supérieur requis",
+        "Java 17 recommandé pour Android",
+        "Configurer JAVA_HOME correctement"
+      ],
+      "setup": [
+        "Installer Java 17",
+        "Configurer JAVA_HOME",
+        "Mettre à jour gradle.properties",
+        "Mettre à jour build.gradle"
+      ],
+      "verification": [
+        "java -version",
+        "flutter doctor",
+        "./gradlew --version"
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "java_version_check",
+  "description": "Vérifie que Java 11 ou supérieur est utilisé pour le projet",
+  "severity": "error",
+  "pattern": {
+    "regex": "java\\.version=([0-9]+)",
+    "message": "Java 11 ou supérieur est requis pour ce projet",
+    "validation": "parseInt($1) >= 11"
+  },
+  "filePatterns": [
+    "**/gradle.properties",
+    "**/android/gradle.properties",
+    "**/android/app/build.gradle"
+  ],
+  "documentation": {
+    "title": "Configuration Java pour Skillex",
+    "description": "Skillex nécessite Java 11 ou supérieur pour fonctionner correctement",
+    "why": "Les versions récentes de Flutter et Android nécessitent Java 11+ pour la compilation et le fonctionnement optimal",
+    "how": "1. Vérifiez votre version de Java : java -version\n2. Si < 11, installez Java 11 ou supérieur\n3. Configurez JAVA_HOME\n4. Redémarrez Android Studio/VS Code"
+  }
+} 

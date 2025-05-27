@@ -1,0 +1,67 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Règles du menu de l'application
+
+## Structure du menu
+- Le menu doit être implémenté dans `lib/widgets/app_drawer.dart`
+- Utiliser `Drawer` comme widget principal
+- Inclure un en-tête avec les informations de l'utilisateur
+- Organiser les éléments avec des `ListTile` et des `Divider`
+
+## Éléments obligatoires
+1. En-tête utilisateur
+   - Photo de profil
+   - Nom d'utilisateur
+   - Email
+
+2. Navigation principale
+   - Accueil
+   - Profil
+   - Support
+   - À propos
+
+3. Liens externes
+   - Site web MediaSystem (mediasystem.cm)
+   - Email de support (dev@mediasystem.cm)
+
+4. Actions
+   - Déconnexion
+
+## Style et UX
+- Utiliser les icônes Material Design
+- Ajouter des retours haptiques sur les interactions
+- Gérer les états de chargement
+- Implémenter la navigation avec `Navigator`
+- Gérer les erreurs de navigation
+
+## Support
+- Créer une page de support dédiée
+- Inclure les informations de contact
+- Ajouter une FAQ
+- Afficher les logs système
+
+## Exemple de code
+```dart
+Drawer(
+  child: ListView(
+    children: [
+      UserAccountsDrawerHeader(...),
+      ListTile(
+        leading: Icon(Icons.home),
+        title: Text('Accueil'),
+        onTap: () => Navigator.pushReplacementNamed(context, '/'),
+      ),
+      // ... autres éléments
+    ],
+  ),
+)
+```
+
+## Vérifications
+- Tous les liens externes doivent utiliser `url_launcher`
+- La navigation doit gérer les erreurs
+- Les textes doivent être en français
+- Le style doit suivre le thème de l'application

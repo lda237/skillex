@@ -417,4 +417,56 @@ class AuthProvider extends ChangeNotifier {
     signOut();
     _setError('Votre session a expiré. Veuillez vous reconnecter.');
   }
+
+  // Méthode pour promouvoir un utilisateur en administrateur
+  Future<void> promoteToAdmin(String userEmail) async {
+    try {
+      // Vérifier si l'utilisateur actuel est admin
+      if (!isAdmin) {
+        throw Exception('Vous n\'avez pas les permissions nécessaires');
+      }
+
+      // Récupérer l'utilisateur par email
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: userEmail)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        throw Exception('Utilisateur non trouvé');
+      }
+
+      // Mettre à jour le statut admin
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userQuery.docs.first.id)
+          .update({'isAdmin': true});
+
+    } catch (e) {
+      if (e is FirebaseAuthException) {
+        _handleAuthError(e);
+      } else {
+        _setError(e.toString());
+      }
+      rethrow;
+    }
+  }
+
+  // Méthode pour vérifier si un utilisateur est admin
+  Future<bool> checkUserIsAdmin(String userEmail) async {
+    try {
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: userEmail)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        return false;
+      }
+
+      return userQuery.docs.first.data()['isAdmin'] ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
 }

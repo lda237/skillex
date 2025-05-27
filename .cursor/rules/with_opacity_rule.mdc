@@ -1,0 +1,49 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+{
+  "name": "with_opacity_rule",
+  "version": "1.0.0",
+  "description": "Règle pour la gestion de l'opacité dans Flutter",
+  "rules": {
+    "pattern": {
+      "regex": "withOpacity\\(([0-9.]+)\\)",
+      "replacement": "withValues(alpha: $1)",
+      "example": {
+        "before": "color.withOpacity(0.5)",
+        "after": "color.withValues(alpha: 0.5)"
+      }
+    },
+    "validation": {
+      "opacity_range": {
+        "min": 0.0,
+        "max": 1.0
+      },
+      "allowed_values": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0
+      ]
+    },
+    "documentation": {
+      "description": "Utiliser withValues(alpha: value) au lieu de withOpacity(value)",
+      "reason": "Meilleure performance et cohérence avec le système de design",
+      "examples": [
+        {
+          "bad": "Colors.blue.withOpacity(0.5)",
+          "good": "Colors.blue.withValues(alpha: 0.5)"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "avoid_print_rule",
+  "description": "Règle pour éviter l'utilisation de print dans le code de production",
+  "severity": "warning",
+  "pattern": {
+    "regex": "\\bprint\\s*\\(",
+    "message": "N'utilisez pas 'print' dans le code de production. Utilisez plutôt le système de logging (DebugLogger)."
+  },
+  "documentation": {
+    "title": "Utilisation du système de logging",
+    "description": "Au lieu d'utiliser print, utilisez le système de logging de l'application :\n\n```dart\nfinal logger = DebugLogger.instance;\nawait logger.initialize();\n\n// Pour les informations\nawait logger.logInfo('Message');\n\n// Pour les avertissements\nawait logger.logWarning('Avertissement');\n\n// Pour les erreurs\nawait logger.logError('Erreur', error: exception);\n\n// Pour le débogage\nawait logger.logDebug('Debug');\n```",
+    "examples": [
+      {
+        "bad": "print('Message');",
+        "good": "await logger.logInfo('Message');"
+      },
+      {
+        "bad": "print('Erreur: $e');",
+        "good": "await logger.logError('Erreur', error: e);"
+      }
+    ]
+  }
+} 

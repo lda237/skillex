@@ -1,0 +1,115 @@
+{
+  "name": "support_screen_rules",
+  "version": "1.0.0",
+  "description": "Règles pour la page de support Skillex",
+  "globs": [
+    "lib/screens/support/support_screen.dart"
+  ],
+  "alwaysApply": true,
+  "rules": {
+    "structure": {
+      "file": "lib/screens/support/support_screen.dart",
+      "widget": "Scaffold",
+      "components": [
+        "AppBar",
+        "SingleChildScrollView",
+        "Column"
+      ]
+    },
+    "required_sections": {
+      "header": {
+        "type": "Column",
+        "components": [
+          {
+            "type": "Image.asset",
+            "path": "assets/images/logo.png",
+            "height": 100
+          },
+          {
+            "type": "Text",
+            "text": "Support Skillex",
+            "style": "GoogleFonts.poppins"
+          }
+        ]
+      },
+      "contact": {
+        "type": "Column",
+        "items": [
+          {
+            "type": "ListTile",
+            "icon": "Icons.email",
+            "title": "Email de support",
+            "subtitle": "dev@mediasystem.cm",
+            "action": "mailto:dev@mediasystem.cm"
+          },
+          {
+            "type": "ListTile",
+            "icon": "Icons.language",
+            "title": "Site web",
+            "subtitle": "mediasystem.cm",
+            "action": "https://mediasystem.cm"
+          },
+          {
+            "type": "ListTile",
+            "icon": "Icons.phone",
+            "title": "Téléphone",
+            "subtitle": "+237 XXX XXX XXX",
+            "action": "tel:+237XXXXXXXXX"
+          }
+        ]
+      },
+      "hours": {
+        "type": "Column",
+        "items": [
+          "Lundi - Vendredi: 8h00 - 18h00",
+          "Samedi: 9h00 - 13h00",
+          "Dimanche: Fermé"
+        ]
+      },
+      "faq": {
+        "type": "Column",
+        "items": [
+          {
+            "question": "Comment réinitialiser mon mot de passe ?",
+            "answer": "Vous pouvez réinitialiser votre mot de passe en cliquant sur \"Mot de passe oublié\" sur l'écran de connexion."
+          },
+          {
+            "question": "Comment contacter le support ?",
+            "answer": "Vous pouvez nous contacter par email à dev@mediasystem.cm ou via le formulaire de contact sur notre site web."
+          },
+          {
+            "question": "Comment signaler un bug ?",
+            "answer": "Utilisez la fonction \"Signaler un problème\" dans les paramètres de l'application."
+          }
+        ]
+      },
+      "logs": {
+        "type": "Container",
+        "style": {
+          "padding": 8,
+          "color": "Colors.grey[200]",
+          "borderRadius": 8
+        },
+        "content": {
+          "type": "SingleChildScrollView",
+          "direction": "Axis.horizontal",
+          "child": "SelectableText"
+        }
+      }
+    },
+    "style": {
+      "theme": "MaterialApp theme",
+      "spacing": "consistent",
+      "animations": "smooth",
+      "error_handling": true,
+      "visual_feedback": true
+    },
+    "validation": {
+      "clickable_links": true,
+      "readable_logs": true,
+      "navigable_faq": true,
+      "responsive_design": true,
+      "french_text": true
+    }
+  }
+} 

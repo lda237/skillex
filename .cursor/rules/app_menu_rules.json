@@ -1,0 +1,82 @@
+{
+  "name": "app_menu_rules",
+  "version": "1.0.0",
+  "description": "Règles pour le menu de l'application Skillex",
+  "globs": [
+    "lib/widgets/app_drawer.dart",
+    "lib/screens/support/support_screen.dart"
+  ],
+  "alwaysApply": true,
+  "rules": {
+    "structure": {
+      "file": "lib/widgets/app_drawer.dart",
+      "widget": "Drawer",
+      "components": [
+        "UserAccountsDrawerHeader",
+        "ListView",
+        "ListTile",
+        "Divider"
+      ]
+    },
+    "required_elements": {
+      "header": {
+        "type": "UserAccountsDrawerHeader",
+        "fields": [
+          "accountName",
+          "accountEmail",
+          "currentAccountPicture"
+        ]
+      },
+      "navigation": [
+        {
+          "title": "Accueil",
+          "icon": "Icons.home",
+          "route": "/"
+        },
+        {
+          "title": "Profil",
+          "icon": "Icons.person",
+          "route": "/profile"
+        },
+        {
+          "title": "Support",
+          "icon": "Icons.help_outline",
+          "route": "/support"
+        },
+        {
+          "title": "À propos",
+          "icon": "Icons.info_outline",
+          "route": "/about"
+        }
+      ],
+      "external_links": [
+        {
+          "title": "Site web MediaSystem",
+          "icon": "Icons.language",
+          "url": "https://mediasystem.cm",
+          "subtitle": "mediasystem.cm"
+        }
+      ],
+      "actions": [
+        {
+          "title": "Déconnexion",
+          "icon": "Icons.logout",
+          "handler": "signOut"
+        }
+      ]
+    },
+    "style": {
+      "theme": "MaterialApp theme",
+      "icons": "Material Design",
+      "feedback": "Haptic feedback",
+      "language": "French",
+      "navigation": "Navigator"
+    },
+    "validation": {
+      "external_links": "url_launcher",
+      "error_handling": true,
+      "french_text": true,
+      "theme_compliance": true
+    }
+  }
+} 

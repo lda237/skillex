@@ -1,0 +1,27 @@
+{
+  "name": "with_opacity_deprecation",
+  "description": "Détecte l'utilisation de withOpacity et suggère d'utiliser withValues pour éviter la perte de précision",
+  "severity": "warning",
+  "pattern": {
+    "regex": "\\.withOpacity\\(([0-9.]+)\\)",
+    "message": "withOpacity est déprécié. Utilisez withValues(alpha: X) à la place, où X = opacity * 255",
+    "replacement": ".withValues(alpha: ${Math.round($1 * 255)})"
+  },
+  "filePatterns": ["**/*.dart"],
+  "examples": [
+    {
+      "before": "color: Colors.blue.withOpacity(0.7)",
+      "after": "color: Colors.blue.withValues(alpha: 179)"
+    },
+    {
+      "before": "color: theme.colorScheme.primary.withOpacity(0.5)",
+      "after": "color: theme.colorScheme.primary.withValues(alpha: 128)"
+    }
+  ],
+  "documentation": {
+    "title": "Remplacer withOpacity par withValues",
+    "description": "La méthode withOpacity est dépréciée car elle peut causer une perte de précision. Utilisez withValues à la place pour une meilleure précision.",
+    "why": "withValues utilise des valeurs entières (0-255) au lieu de décimales (0.0-1.0), ce qui évite les problèmes de précision avec les nombres à virgule flottante.",
+    "how": "Pour convertir une valeur d'opacité :\n1. Prenez la valeur d'opacité (0.0-1.0)\n2. Multipliez-la par 255\n3. Arrondissez à l'entier le plus proche\n4. Utilisez cette valeur avec withValues(alpha: X)"
+  }
+} 

@@ -15,6 +15,9 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/video/video_player_screen.dart';
 import 'screens/admin_add_content_screen.dart';
 import 'screens/playlist/playlist_details_screen.dart';
+import 'screens/about/about_screen.dart';
+import 'screens/admin/admin_management_screen.dart';
+import 'screens/support/support_screen.dart';
 import 'utils/app_theme.dart';
 import 'services/youtube_service.dart';
 import 'providers/theme_provider.dart';
@@ -58,10 +61,13 @@ class MyApp extends StatelessWidget {
               '/profile': (context) => const ProfileScreen(),
               '/video': (context) => const VideoPlayerScreen(),
               '/adminAddContent': (context) => const AdminAddContentScreen(),
+              '/adminManagement': (context) => const AdminManagementScreen(),
               '/playlistDetails': (context) {
                 final playlistId = ModalRoute.of(context)!.settings.arguments as String;
                 return PlaylistDetailsScreen(playlistId: playlistId);
               },
+              '/about': (context) => const AboutScreen(),
+              '/support': (context) => const SupportScreen(),
             },
           );
         },
