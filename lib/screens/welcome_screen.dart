@@ -290,7 +290,7 @@ class WelcomeScreenState extends State<WelcomeScreen>
                 _buildEnhancedButton(
                   text: 'Commencer',
                   onTap: () {
-                    // Navigation vers l'écran suivant
+                    Navigator.pushNamed(context, '/signup');
                   },
                   isPrimary: true,
                   theme: theme,
@@ -299,7 +299,7 @@ class WelcomeScreenState extends State<WelcomeScreen>
                 _buildEnhancedButton(
                   text: 'Se connecter',
                   onTap: () {
-                    // Navigation vers l'écran de connexion
+                    Navigator.pushNamed(context, '/login');
                   },
                   isPrimary: false,
                   theme: theme,

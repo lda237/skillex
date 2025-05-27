@@ -6,6 +6,7 @@ import '../../providers/video_provider.dart';
 import '../../providers/playlist_provider.dart';
 import '../../agents/ui/video_card.dart';
 import '../../agents/ui/playlist_list.dart';
+import '../../widgets/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> 
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   
@@ -207,6 +209,11 @@ class _HomeScreenState extends State<HomeScreen>
       elevation: 0,
       backgroundColor: Colors.transparent,
       stretch: true,
+      leading: IconButton(
+        icon: const Icon(Icons.menu),
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+      ),
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [
           StretchMode.zoomBackground,
@@ -975,6 +982,8 @@ class _HomeScreenState extends State<HomeScreen>
         }
 
         return Scaffold(
+          key: _scaffoldKey,
+          drawer: const AppDrawer(),
           backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
             onRefresh: () async {

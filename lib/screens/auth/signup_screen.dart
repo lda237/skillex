@@ -55,7 +55,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
 
     if (success && mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => route.isFirst);
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (Route<dynamic> route) => false);
     }
   }
 
@@ -69,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final success = await authProvider.signInWithGoogle();
     
     if (success && mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => route.isFirst);
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (Route<dynamic> route) => false);
     }
   }
 
