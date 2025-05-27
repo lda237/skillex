@@ -67,10 +67,8 @@ android/app/release/
 
 # Environment files
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
+!.env.example
 
 # Generated files
 *.g.dart

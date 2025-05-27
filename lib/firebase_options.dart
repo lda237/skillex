@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import '../config/api_config.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -27,7 +28,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -41,53 +45,40 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC7zMLkVkU9uRbCpOPsVkt365XCbxPvJis',
-    appId: '1:320421822385:web:5b37dac32d59d6bc86c790',
-    messagingSenderId: '320421822385',
-    projectId: 'skillex-f4084',
-    authDomain: 'skillex-f4084.firebaseapp.com',
-    storageBucket: 'skillex-f4084.firebasestorage.app',
-    measurementId: 'G-Z82Y0WJKS9',
+    apiKey: ApiConfig.firebaseApiKey,
+    appId: ApiConfig.firebaseAppId,
+    messagingSenderId: ApiConfig.firebaseMessagingSenderId,
+    projectId: ApiConfig.firebaseProjectId,
+    authDomain: ApiConfig.firebaseAuthDomain,
+    storageBucket: ApiConfig.firebaseStorageBucket,
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDv0vfP9K1ZComswh6fkIFqi9JqnPy2wic',
-    appId: '1:320421822385:android:7b9da9dd6842230986c790',
-    messagingSenderId: '320421822385',
-    projectId: 'skillex-f4084',
-    storageBucket: 'skillex-f4084.firebasestorage.app',
+    apiKey: ApiConfig.firebaseApiKey,
+    appId: ApiConfig.firebaseAppId,
+    messagingSenderId: ApiConfig.firebaseMessagingSenderId,
+    projectId: ApiConfig.firebaseProjectId,
+    storageBucket: ApiConfig.firebaseStorageBucket,
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCpyEhBqX64kk3WoZIDVd3A5bFqeTutnhw',
-    appId: '1:320421822385:ios:9a3698a28acfb61f86c790',
-    messagingSenderId: '320421822385',
-    projectId: 'skillex-f4084',
-    storageBucket: 'skillex-f4084.firebasestorage.app',
-    androidClientId: '320421822385-j5d2h8giqes9m2cpnu73gohsj11jpm5r.apps.googleusercontent.com',
-    iosClientId: '320421822385-649kvdqqsp4agt28ft9cg7v336fij4qc.apps.googleusercontent.com',
-    iosBundleId: 'cm.mediasystem.skillex',
+    apiKey: ApiConfig.firebaseApiKey,
+    appId: ApiConfig.firebaseAppId,
+    messagingSenderId: ApiConfig.firebaseMessagingSenderId,
+    projectId: ApiConfig.firebaseProjectId,
+    storageBucket: ApiConfig.firebaseStorageBucket,
+    iosClientId: 'YOUR_IOS_CLIENT_ID',
+    iosBundleId: 'com.example.skillex',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCpyEhBqX64kk3WoZIDVd3A5bFqeTutnhw',
-    appId: '1:320421822385:ios:9a3698a28acfb61f86c790',
-    messagingSenderId: '320421822385',
-    projectId: 'skillex-f4084',
-    storageBucket: 'skillex-f4084.firebasestorage.app',
-    androidClientId: '320421822385-j5d2h8giqes9m2cpnu73gohsj11jpm5r.apps.googleusercontent.com',
-    iosClientId: '320421822385-649kvdqqsp4agt28ft9cg7v336fij4qc.apps.googleusercontent.com',
-    iosBundleId: 'cm.mediasystem.skillex',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyC7zMLkVkU9uRbCpOPsVkt365XCbxPvJis',
-    appId: '1:320421822385:web:06f92dc37ac3641f86c790',
-    messagingSenderId: '320421822385',
-    projectId: 'skillex-f4084',
-    authDomain: 'skillex-f4084.firebaseapp.com',
-    storageBucket: 'skillex-f4084.firebasestorage.app',
-    measurementId: 'G-PSDS5P0DLS',
+    apiKey: ApiConfig.firebaseApiKey,
+    appId: ApiConfig.firebaseAppId,
+    messagingSenderId: ApiConfig.firebaseMessagingSenderId,
+    projectId: ApiConfig.firebaseProjectId,
+    storageBucket: ApiConfig.firebaseStorageBucket,
+    iosClientId: 'YOUR_IOS_CLIENT_ID',
+    iosBundleId: 'com.example.skillex',
   );
 
 }

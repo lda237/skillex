@@ -2,18 +2,45 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/video.dart';
+import '../config/api_config.dart';
 
 class YoutubeService {
   static const String _baseUrl = 'https://www.googleapis.com/youtube/v3';
-  static const String _apiKey = 'AIzaSyAFv67cynIZlrIyDQAWKgDjfgImXYSLWZs'; // À remplacer par votre clé API
-  static const String _channelId = 'UCb9CgMS8l2e8Q4ib7D5m5Yg'; // ID de la chaîne Skillex
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late SharedPreferences _prefs;
+  static const String _cacheKey = 'cached_videos';
+  static const Duration _cacheDuration = Duration(hours: 1);
 
-  // Récupérer les vidéos depuis Firestore (méthode principale)
+  YoutubeService() {
+    _initPrefs();
+  }
+
+  Future<void> _initPrefs() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  // Vérifier la configuration
+  void _checkConfiguration() {
+    if (!ApiConfig.isConfigured) {
+      throw Exception('Les clés API ne sont pas configurées correctement');
+    }
+  }
+
+  // Récupérer les vidéos avec cache
   Future<List<Video>> fetchVideos() async {
     try {
+      _checkConfiguration();
+      
+      // Vérifier le cache
+      final cachedVideos = await _getCachedVideos();
+      if (cachedVideos != null) {
+        return cachedVideos;
+      }
+
+      // Si pas de cache, récupérer depuis Firestore
       final querySnapshot = await _firestore
           .collection('videos')
           .orderBy('publishedAt', descending: true)
@@ -21,53 +48,108 @@ class YoutubeService {
 
       if (querySnapshot.docs.isEmpty) {
         // Si aucune vidéo en base, essayer de récupérer depuis YouTube
-        return await _fetchFromYouTubeAndStore();
+        final videos = await _fetchFromYouTubeAndStore();
+        await _cacheVideos(videos);
+        return videos;
       }
 
-      return querySnapshot.docs
+      final videos = querySnapshot.docs
           .map((doc) => Video.fromFirestore(doc.data()))
           .toList();
+      
+      await _cacheVideos(videos);
+      return videos;
     } catch (e) {
-      throw Exception('Erreur lors de la récupération des vidéos: $e');
+      debugPrint('Erreur lors de la récupération des vidéos: $e');
+      // En cas d'erreur, essayer de récupérer depuis le cache
+      final cachedVideos = await _getCachedVideos();
+      if (cachedVideos != null) {
+        return cachedVideos;
+      }
+      // Si pas de cache, retourner les vidéos mock
+      return _getMockVideos();
     }
   }
 
-  // Récupérer depuis YouTube API et stocker en base
-  Future<List<Video>> _fetchFromYouTubeAndStore() async {
+  // Gestion du cache
+  Future<List<Video>?> _getCachedVideos() async {
     try {
-      // Récupérer les vidéos de la chaîne
-      final channelId = _channelId;
-      final url = '$_baseUrl/search?part=snippet&channelId=$channelId&maxResults=50&type=video&key=$_apiKey';
+      final cachedData = _prefs.getString(_cacheKey);
+      if (cachedData == null) return null;
+
+      final Map<String, dynamic> cache = json.decode(cachedData);
+      final timestamp = DateTime.parse(cache['timestamp']);
       
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) {
-        throw Exception('Erreur API YouTube: ${response.statusCode}');
+      if (DateTime.now().difference(timestamp) > _cacheDuration) {
+        await _prefs.remove(_cacheKey);
+        return null;
       }
 
-      final data = json.decode(response.body);
-      final items = data['items'] as List;
-      
-      final videos = <Video>[];
-      for (final item in items) {
-        final videoId = item['id']['videoId'];
-        final video = await _fetchVideoDetails(videoId);
-        if (video != null) {
-          videos.add(video);
-          await _storeVideoInFirestore(video);
-        }
-      }
-
-      return videos;
+      final List<dynamic> videosJson = cache['videos'];
+      return videosJson.map((json) => Video.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('Erreur lors de la récupération depuis YouTube: $e');
-      return _getMockVideos();
+      debugPrint('Erreur lors de la récupération du cache: $e');
+      return null;
     }
+  }
+
+  Future<void> _cacheVideos(List<Video> videos) async {
+    try {
+      final cache = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'videos': videos.map((v) => v.toJson()).toList(),
+      };
+      await _prefs.setString(_cacheKey, json.encode(cache));
+    } catch (e) {
+      debugPrint('Erreur lors de la mise en cache: $e');
+    }
+  }
+
+  // Récupérer depuis YouTube API avec retry
+  Future<List<Video>> _fetchFromYouTubeAndStore() async {
+    int retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        final channelId = ApiConfig.youtubeChannelId;
+        final url = '$_baseUrl/search?part=snippet&channelId=$channelId&maxResults=50&type=video&key=${ApiConfig.youtubeApiKey}';
+        
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode != 200) {
+          throw Exception('Erreur API YouTube: ${response.statusCode}');
+        }
+
+        final data = json.decode(response.body);
+        final items = data['items'] as List;
+        
+        final videos = <Video>[];
+        for (final item in items) {
+          final videoId = item['id']['videoId'];
+          final video = await _fetchVideoDetails(videoId);
+          if (video != null) {
+            videos.add(video);
+            await _storeVideoInFirestore(video);
+          }
+        }
+
+        return videos;
+      } catch (e) {
+        retryCount++;
+        if (retryCount == maxRetries) {
+          debugPrint('Échec après $maxRetries tentatives: $e');
+          return _getMockVideos();
+        }
+        await Future.delayed(Duration(seconds: retryCount * 2));
+      }
+    }
+    return _getMockVideos();
   }
 
   // Récupérer les détails d'une vidéo YouTube
   Future<Video?> _fetchVideoDetails(String videoId) async {
     try {
-      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&id=$videoId&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&id=$videoId&key=${ApiConfig.youtubeApiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -230,7 +312,7 @@ class YoutubeService {
   // Valider si une vidéo YouTube existe
   Future<bool> validateYouTubeVideo(String youtubeId) async {
     try {
-      final url = '$_baseUrl/videos?part=id&id=$youtubeId&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=id&id=$youtubeId&key=${ApiConfig.youtubeApiKey}';
       final response = await http.get(Uri.parse(url));
       
       if (response.statusCode == 200) {
@@ -296,7 +378,7 @@ class YoutubeService {
   // Méthode pour récupérer les vidéos populaires
   Future<List<Video>> getPopularVideos() async {
     try {
-      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=10&key=$_apiKey';
+      final url = '$_baseUrl/videos?part=snippet,contentDetails,statistics&chart=mostPopular&maxResults=10&key=${ApiConfig.youtubeApiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -315,7 +397,7 @@ class YoutubeService {
   // Méthode pour récupérer les vidéos d'une playlist
   Future<List<Video>> getPlaylistVideos(String playlistId) async {
     try {
-      final url = '$_baseUrl/playlistItems?part=snippet&playlistId=$playlistId&maxResults=50&key=$_apiKey';
+      final url = '$_baseUrl/playlistItems?part=snippet&playlistId=$playlistId&maxResults=50&key=${ApiConfig.youtubeApiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -342,7 +424,7 @@ class YoutubeService {
   // Méthode pour rechercher des vidéos sur YouTube
   Future<List<Video>> searchYouTubeVideos(String query) async {
     try {
-      final url = '$_baseUrl/search?part=snippet&q=$query&type=video&maxResults=10&key=$_apiKey';
+      final url = '$_baseUrl/search?part=snippet&q=$query&type=video&maxResults=10&key=${ApiConfig.youtubeApiKey}';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {

@@ -111,7 +111,7 @@ Skillex est une application mobile de formation en ligne qui permet aux utilisat
 1. Clonez le repository
 
 ```bash
-git clone https://github.com/votre-username/skillex.git
+git clone https://github.com/lda237/skillex.git
 ```
 
 2. Installez les dépendances
@@ -135,3 +135,35 @@ flutter pub get
 ```bash
 flutter run
 ```
+
+## Configuration des variables d'environnement
+
+1. Copiez le fichier `.env.example` vers `.env` :
+
+```bash
+cp .env.example .env
+```
+
+2. Remplissez les variables dans le fichier `.env` avec vos clés API :
+
+- `YOUTUBE_API_KEY` : Votre clé API YouTube
+- `YOUTUBE_CHANNEL_ID` : L'ID de votre chaîne YouTube
+- `FIREBASE_API_KEY` : Votre clé API Firebase
+- `FIREBASE_AUTH_DOMAIN` : Votre domaine d'authentification Firebase
+- `FIREBASE_PROJECT_ID` : L'ID de votre projet Firebase
+- `FIREBASE_STORAGE_BUCKET` : Votre bucket de stockage Firebase
+- `FIREBASE_MESSAGING_SENDER_ID` : Votre ID d'expéditeur Firebase
+- `FIREBASE_APP_ID` : Votre ID d'application Firebase
+
+3. Pour le développement, vous pouvez utiliser les variables d'environnement de Flutter :
+
+```bash
+flutter run --dart-define=YOUTUBE_API_KEY=your_key --dart-define=FIREBASE_API_KEY=your_key
+```
+
+## Sécurité
+
+- Ne jamais commiter le fichier `.env` dans le dépôt Git
+- Utiliser des clés API différentes pour le développement et la production
+- Mettre en place une rotation régulière des clés API
+- Limiter les quotas d'API pour éviter les abus
