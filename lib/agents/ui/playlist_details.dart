@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/playlist.dart';
 import '../../models/video.dart';
+import '../../widgets/metadata_chip.dart';
 import 'video_card.dart';
 
 class PlaylistDetails extends StatelessWidget {
@@ -94,34 +95,25 @@ class PlaylistDetails extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildMetadataChip(
-                    context,
-                    Icons.video_library,
-                    '${playlist.videoCount} vidéos',
+                  MetadataChip(
+                    icon: Icons.video_library,
+                    label: '${playlist.videoCount} vidéos',
                   ),
-                  _buildMetadataChip(
-                    context,
-                    Icons.timer,
-                    playlist.formattedDuration,
+                  MetadataChip(
+                    icon: Icons.timer,
+                    label: playlist.formattedDuration,
                   ),
-                  _buildMetadataChip(
-                    context,
-                    Icons.category,
-                    playlist.category,
+                  MetadataChip(
+                    icon: Icons.category,
+                    label: playlist.category,
                   ),
-                  _buildMetadataChip(
-                    context,
-                    Icons.speed,
-                    playlist.difficulty,
+                  MetadataChip(
+                    icon: Icons.speed,
+                    label: playlist.difficulty,
                   ),
-                  _buildMetadataChip(
-                    context,
-                    playlist.isPublic
-                        ? Icons.public
-                        : Icons.lock,
-                    playlist.isPublic
-                        ? 'Publique'
-                        : 'Privée',
+                  MetadataChip(
+                    icon: playlist.isPublic ? Icons.public : Icons.lock,
+                    label: playlist.isPublic ? 'Publique' : 'Privée',
                   ),
                 ],
               ),
@@ -244,36 +236,4 @@ class PlaylistDetails extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildMetadataChip(
-    BuildContext context,
-    IconData icon,
-    String label,
-  ) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.textTheme.bodyMedium!.color!.withAlpha(153),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-} 
+}

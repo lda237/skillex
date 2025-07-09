@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../agents/optimization_agent.dart';
+
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -132,8 +132,7 @@ class WelcomeScreenState extends State<WelcomeScreen>
     required bool isPrimary,
     required ThemeData theme,
   }) {
-    return OptimizedStatelessWidget(
-      child: TweenAnimationBuilder<double>(
+    return TweenAnimationBuilder<double>(
         duration: const Duration(milliseconds: 200),
         tween: Tween<double>(begin: 1.0, end: 1.0),
         builder: (context, scale, child) {
@@ -208,8 +207,7 @@ class WelcomeScreenState extends State<WelcomeScreen>
             ),
           );
         },
-      ),
-    );
+      );
   }
 
   @override

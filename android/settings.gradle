@@ -20,7 +20,12 @@ pluginManagement {
     }
 }
 
-apply from: "${settings.ext.flutterSdkPath}/packages/flutter_tools/gradle/app_plugin_loader.gradle"
+plugins {
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+}
 
-// Appliquer le script de détection Java
-apply from: new File(settingsDir, 'detect_java.gradle') 
+// Suppression de la ligne suivante car elle cause une erreur
+// apply from: new File(settingsDir, 'detect_java.gradle')
+
+// Ajout de l'inclusion du module app
+include ':app' 

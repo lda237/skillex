@@ -599,13 +599,7 @@ class _HomeScreenState extends State<HomeScreen>
               Navigator.pushNamed(context, '/profile');
               break;
             case 2:
-              // Favoris - à implémenter
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fonctionnalité à venir !'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+              Navigator.pushNamed(context, '/favorites');
               break;
           }
         },

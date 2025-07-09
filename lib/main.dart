@@ -18,6 +18,7 @@ import 'screens/playlist/playlist_details_screen.dart';
 import 'screens/about/about_screen.dart';
 import 'screens/admin/admin_management_screen.dart';
 import 'screens/support/support_screen.dart';
+import 'screens/favorites/favorites_screen.dart';
 import 'utils/app_theme.dart';
 import 'services/youtube_service.dart';
 import 'providers/theme_provider.dart';
@@ -63,11 +64,18 @@ class MyApp extends StatelessWidget {
               '/adminAddContent': (context) => const AdminAddContentScreen(),
               '/adminManagement': (context) => const AdminManagementScreen(),
               '/playlistDetails': (context) {
-                final playlistId = ModalRoute.of(context)!.settings.arguments as String;
-                return PlaylistDetailsScreen(playlistId: playlistId);
+                final Object? args = ModalRoute.of(context)!.settings.arguments;
+                if (args is String) {
+                  return PlaylistDetailsScreen(playlistId: args);
+                }
+                // Retourne un écran d'erreur si l'argument est invalide
+                return const Scaffold(
+                  body: Center(child: Text('Erreur: Argument de page invalide')),
+                );
               },
               '/about': (context) => const AboutScreen(),
               '/support': (context) => const SupportScreen(),
+              '/favorites': (context) => const FavoritesScreen(),
             },
           );
         },

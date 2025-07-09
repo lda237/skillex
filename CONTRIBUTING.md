@@ -1,144 +1,138 @@
-# Guide de Contribution - Skillex
+# Guide de Contribution pour Skillex
 
-Ce document décrit les bonnes pratiques de versionnement et de contribution au projet Skillex.
+Merci de vouloir contribuer à l'amélioration de Skillex !
 
-## Structure des Branches
+Ce document a pour but de définir un ensemble de règles et de bonnes pratiques pour assurer la cohérence, la qualité et la maintenabilité du code source.
 
-- `master` : Branche principale stable
-- `develop` : Branche de développement
-- `feature/*` : Branches pour les nouvelles fonctionnalités
-- `bugfix/*` : Branches pour les corrections de bugs
-- `release/*` : Branches pour les versions
+## Principes Généraux
 
-## Workflow de Développement
+1.  **Consistance avant tout :** Avant d'écrire du code, prenez le temps de parcourir les fichiers existants pour comprendre les conventions et l'architecture en place.
+2.  **Petites contributions :** Privilégiez les modifications petites et ciblées. Une Pull Request (PR) doit idéalement adresser un seul besoin (une seule correction de bug ou l'ajout d'une seule fonctionnalité).
+3.  **Le code doit fonctionner :** Assurez-vous que l'application se compile et s'exécute sans erreur après vos modifications.
 
-### 1. Développement d'une Nouvelle Fonctionnalité
+## Style de Code
 
-```bash
-# Créer une nouvelle branche feature
-git checkout -b feature/nom-de-la-fonctionnalite
+-   **Langage :** Le code est écrit en Dart. Les commentaires et le texte visible par l'utilisateur sont en français.
+-   **Formatage :** Le code doit être formaté avec l'outil standard de Dart (`dart format`).
+-   **Conventions de nommage :**
+    -   Classes, Enums, Mixins : `UpperCamelCase` (ex: `PlaylistProvider`).
+    -   Variables, méthodes, fonctions : `lowerCamelCase` (ex: `loadUserProgress`).
+    -   Fichiers : `snake_case` (ex: `playlist_provider.dart`).
+-   **Linting :** Respectez les règles définies dans le fichier `analysis_options.yaml`.
 
-# Développer votre fonctionnalité
-# ... votre code ...
+## Architecture du Projet
 
-# Une fois terminé
-git add .
-git commit -m "feat: description de la fonctionnalité"
-git push origin feature/nom-de-la-fonctionnalite
+L'application suit une architecture claire qui sépare les responsabilités. Il est impératif de la respecter.
 
-# Créer une Pull Request sur GitHub pour merger dans develop
-```
+-   `lib/models/` : Contient les objets de données (ex: `Playlist`, `Video`). Ils doivent être immuables (utiliser `copyWith` pour les modifications) et contenir la logique de sérialisation (`fromFirestore`, `toFirestore`).
+-   `lib/services/` : Contient toute la logique de communication avec des sources externes (API YouTube, base de données Firestore). **Les services ne doivent jamais être appelés directement depuis l'interface utilisateur (UI).**
+-   `lib/providers/` : Sert de pont entre les services et l'UI. Les providers appellent les services pour récupérer/modifier les données, gèrent l'état de la logique métier (chargement, erreurs) et notifient l'UI des changements via `notifyListeners()`.
+-   `lib/screens/` & `lib/widgets/` : Contiennent l'UI. Les widgets doivent être aussi "simples" que possible. Leur rôle est d'afficher l'état fourni par les providers et de remonter les interactions de l'utilisateur en appelant les méthodes des providers.
 
-### 2. Correction d'un Bug
+## Gestion de l'État
 
-```bash
-# Créer une branche bugfix
-git checkout -b bugfix/description-du-bug
+-   **Provider est roi :** La gestion d'état doit se faire exclusivement avec le package `provider`.
+-   **Lecture de l'état :** Pour écouter les changements et reconstruire un widget, utilisez `context.watch<MonProvider>()` ou le widget `Consumer`.
+-   **Appel de méthodes :** Pour appeler une fonction d'un provider sans écouter les changements (dans un `onPressed` par exemple), utilisez `context.read<MonProvider>()`.
 
-# Corriger le bug
-# ... votre code ...
+## Processus pour Ajouter une Nouvelle Fonctionnalité
 
-# Une fois terminé
-git add .
-git commit -m "fix: description de la correction"
-git push origin bugfix/description-du-bug
+Pour ajouter une nouvelle fonctionnalité, suivez ces étapes dans l'ordre :
 
-# Créer une Pull Request sur GitHub pour merger dans develop
-```
+1.  **Modèle :** Si nécessaire, créez ou mettez à jour le modèle de données dans `lib/models/`.
+2.  **Service :** Ajoutez la logique de récupération ou de modification des données dans le service approprié dans `lib/services/`.
+3.  **Provider :** Créez ou mettez à jour un provider dans `lib/providers/` pour gérer l'état de la nouvelle fonctionnalité. C'est ici que vous appellerez votre service.
+4.  **UI :** Construisez l'interface utilisateur dans un nouveau fichier dans `lib/screens/` et/ou `lib/widgets/`. Connectez l'UI au provider pour afficher les données et remonter les actions.
+5.  **Route :** Ajoutez la nouvelle route dans le fichier `lib/main.dart`.
 
-### 3. Préparation d'une Release
+### Règle d'Or pour les Widgets
 
-```bash
-# Créer une branche release
-git checkout -b release/v1.0.0
+**Autonomie des Méthodes de "Build" Privées**
 
-# Faire les derniers ajustements
-# ... votre code ...
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-# Une fois prêt
-git add .
-git commit -m "chore: prepare release v1.0.0"
-git push origin release/v1.0.0
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-# Créer une Pull Request sur GitHub pour merger dans master
-```
+### Règle d'Or pour les Widgets
 
-## Conventions de Nommage
+**Autonomie des Méthodes de "Build" Privées**
 
-### Messages de Commit
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-Utilisez les préfixes suivants pour vos messages de commit :
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-- `feat:` : Nouvelle fonctionnalité
-- `fix:` : Correction de bug
-- `docs:` : Documentation
-- `style:` : Changements de style
-- `refactor:` : Refactoring
-- `test:` : Tests
-- `chore:` : Tâches de maintenance
+### Règle d'Or pour les Widgets
 
-### Branches
+**Autonomie des Méthodes de "Build" Privées**
 
-- `feature/nom-fonctionnalite`
-- `bugfix/description-bug`
-- `release/v1.0.0`
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-## Bonnes Pratiques
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-1. **Commits**
-   - Faites des commits fréquents
-   - Utilisez des messages descriptifs
-   - Un commit = une modification logique
+### Règle d'Or pour les Widgets
 
-2. **Branches**
-   - Gardez vos branches à jour avec `develop`
-   - Utilisez `git pull origin develop` régulièrement
-   - Supprimez les branches après merge
+**Autonomie des Méthodes de "Build" Privées**
 
-3. **Pull Requests**
-   - Créez une PR pour chaque merge
-   - Décrivez clairement les changements
-   - Attendez la review avant de merger
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-4. **Code**
-   - Suivez les conventions de code Flutter
-   - Écrivez des tests unitaires
-   - Documentez votre code
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-## Commandes Git Utiles
+### Règle d'Or pour les Widgets
 
-```bash
-# Voir l'état des fichiers
-git status
+**Autonomie des Méthodes de "Build" Privées**
 
-# Voir l'historique des commits
-git log
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-# Mettre à jour sa branche
-git pull origin develop
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-# Annuler des modifications
-git checkout -- fichier
+### Règle d'Or pour les Widgets
 
-# Créer une nouvelle branche
-git checkout -b nom-branche
+**Autonomie des Méthodes de "Build" Privées**
 
-# Changer de branche
-git checkout nom-branche
-```
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-## Processus de Review
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
 
-1. Créez une Pull Request sur GitHub
-2. Attendez la review d'au moins un autre développeur
-3. Corrigez les commentaires si nécessaire
-4. Une fois approuvé, mergez dans `develop`
-5. Supprimez la branche après le merge
+### Règle d'Or pour les Widgets
 
-## Questions ?
+**Autonomie des Méthodes de "Build" Privées**
 
-Si vous avez des questions sur le processus de contribution, n'hésitez pas à :
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
 
-- Ouvrir une issue sur GitHub
-- Contacter l'équipe de développement
-- Consulter la documentation Flutter
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
+
+### Règle d'Or pour les Widgets
+
+**Autonomie des Méthodes de "Build" Privées**
+
+Les méthodes privées dont le but est de construire une partie de l'interface (commençant par `_build...`) ne doivent pas recevoir de paramètres comme `ThemeData` ou `Size`. Elles doivent plutôt prendre le `BuildContext` en paramètre et obtenir elles-mêmes les dépendances dont elles ont besoin (ex: `Theme.of(context)`, `MediaQuery.of(context)`). Cela rend les méthodes plus autonomes et le code plus lisible.
+
+*   **Mauvais exemple :** `Widget _buildTitle(ThemeData theme) { ... }`
+*   **Bon exemple :** `Widget _buildTitle(BuildContext context) { final theme = Theme.of(context); ... }`
+
+## Messages de Commit
+
+Utilisez la norme [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). Le message doit être clair, concis et en anglais de préférence (pour respecter les standards internationaux).
+
+**Format :** `<type>(<scope>): <sujet>`
+
+-   **Types principaux :**
+    -   `feat` : Pour l'ajout d'une nouvelle fonctionnalité.
+    -   `fix` : Pour la correction d'un bug.
+    -   `refactor` : Pour des changements qui n'ajoutent ni fonctionnalité ni ne corrigent de bug.
+    -   `docs` : Pour des changements dans la documentation.
+    -   `style` : Pour des changements de style (formatage, etc.).
+    -   `chore` : Pour des tâches de maintenance (mise à jour de dépendances, etc.).
+
+**Exemples :**
+
+-   `feat(auth): Add Google Sign-In functionality`
+-   `fix(profile): Correct user avatar display bug`
+-   `docs(readme): Update setup instructions`

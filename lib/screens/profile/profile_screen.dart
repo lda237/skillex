@@ -78,7 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   Widget _buildPopupMenu() {
     final authProvider = Provider.of<AuthProvider>(context);
-    final isAdmin = authProvider.user?.email == 'narcissekodo@gmail.com';
+    final isAdmin = authProvider.isAdmin;
 
     return PopupMenuButton<String>(
       onSelected: _handleMenuSelection,

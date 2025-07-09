@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/playlist.dart';
+import '../../widgets/metadata_chip.dart';
 
 class PlaylistCard extends StatelessWidget {
   final Playlist playlist;
@@ -86,24 +87,21 @@ class PlaylistCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // Metadata
-              Row(
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
                 children: [
-                  _buildMetadataChip(
-                    context,
-                    Icons.video_library,
-                    '${playlist.videoCount} vidéos',
+                  MetadataChip(
+                    icon: Icons.video_library,
+                    label: '${playlist.videoCount} vidéos',
                   ),
-                  const SizedBox(width: 8),
-                  _buildMetadataChip(
-                    context,
-                    Icons.timer,
-                    playlist.formattedDuration,
+                  MetadataChip(
+                    icon: Icons.timer,
+                    label: playlist.formattedDuration,
                   ),
-                  const SizedBox(width: 8),
-                  _buildMetadataChip(
-                    context,
-                    Icons.category,
-                    playlist.category,
+                  MetadataChip(
+                    icon: Icons.category,
+                    label: playlist.category,
                   ),
                 ],
               ),
@@ -144,36 +142,4 @@ class PlaylistCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildMetadataChip(
-    BuildContext context,
-    IconData icon,
-    String label,
-  ) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withAlpha(26),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium!.color!.withAlpha(153),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-} 
+}

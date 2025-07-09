@@ -68,26 +68,3 @@ class OptimizationAgent {
     );
   }
 }
-
-/// Mixin pour optimiser les performances des widgets
-mixin OptimizedWidget {
-  /// Méthode pour éviter les rebuilds inutiles
-  bool shouldRebuild(covariant Widget oldWidget) {
-    return false;
-  }
-}
-
-/// Widget de base optimisé
-class OptimizedStatelessWidget extends StatelessWidget with OptimizedWidget {
-  final Widget child;
-
-  const OptimizedStatelessWidget({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return child;
-  }
-} 
